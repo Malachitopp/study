@@ -21,3 +21,4 @@ class Task(Base):
 
     module = relationship("Module", back_populates="tasks")
 
+    commitments = relationship("Commitment", back_populates="task")
