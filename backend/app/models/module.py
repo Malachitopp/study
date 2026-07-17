@@ -13,4 +13,4 @@ class Module(Base):
 
     user = relationship("User", back_populates="modules") 
 
-    
+    tasks = relationship("Task", back_populates="module")
