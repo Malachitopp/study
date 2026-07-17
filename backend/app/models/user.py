@@ -8,3 +8,8 @@ class User(Base):
     hashed_password = Column( String(), nullable=False)
     stripe_customer_id = Column(String(), nullable=True)
     expo_push_token = Column( String(), nullable=True)
+
+
+from sqlalchemy.orm import relationship
+
+modules = relationship("Module", back_populates="user")
