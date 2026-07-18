@@ -12,3 +12,6 @@ from app.routers import modules
 
 app.include_router(modules.router) 
 
+from app.routers import tasks
+
+app.include_router(tasks.router)
