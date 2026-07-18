@@ -26,5 +26,6 @@ class Commitment(Base):
     status = Column(SAEnum(CommitmentStatus), nullable = False, default = CommitmentStatus.active)
 
     task = relationship("Task", back_populates="commitments")
-
+    
+    checkin = relationship("Checkin", back_populates="commitments")
 
