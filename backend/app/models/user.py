@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from app.database import Base
+from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "users"
@@ -10,6 +11,9 @@ class User(Base):
     expo_push_token = Column( String(), nullable=True)
 
 
-from sqlalchemy.orm import relationship
+    
 
-modules = relationship("Module", back_populates="user")
+    modules = relationship("Module", back_populates="user")
+
+
+    
