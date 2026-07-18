@@ -8,8 +8,7 @@ class Transaction(Base):
     id = Column(Integer, primary_key=True)
     commitment_id = Column(Integer, ForeignKey("commitments.id"), nullable = False)
     amount_pence = Column(Integer, nullable=False) 
-    stripe_payment_id = Column(Integer, nullable=True)
+    stripe_payment_id = Column(String, nullable=True)
     reason = Column(String, nullable=False) 
 
     commitment = relationship("Commitment", back_populates="transactions")
-    

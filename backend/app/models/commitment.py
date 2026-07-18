@@ -27,6 +27,6 @@ class Commitment(Base):
 
     task = relationship("Task", back_populates="commitments")
     
-    checkin = relationship("Checkin", back_populates="commitments")
+    checkins = relationship("Checkin", back_populates="commitment")
 
-    transactions = relationship("Transaction", back_populates="commitments")
+    transactions = relationship("Transaction", back_populates="commitment")
