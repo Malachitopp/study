@@ -15,3 +15,7 @@ app.include_router(modules.router)
 from app.routers import tasks
 
 app.include_router(tasks.router)
+
+from app.routers import commitments
+
+app.include_router(commitments.router)
