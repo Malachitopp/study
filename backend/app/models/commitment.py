@@ -19,7 +19,7 @@ class Commitment(Base):
     __tablename__ = "commitments"
 
     id = Column(Integer, primary_key=True)
-    task_id = Column(Integer, ForeignKey("task.id"), nullable = False)
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable = False)
     stake_pence = Column(Integer, nullable = False) 
     deadline = Column(DateTime, nullable = False)
     verification_type = Column(SAEnum(VerificationType),nullable = False )
