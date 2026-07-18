@@ -29,3 +29,4 @@ class Commitment(Base):
     
     checkin = relationship("Checkin", back_populates="commitments")
 
+    transactions = relationship("Transaction", back_populates="commitments")
