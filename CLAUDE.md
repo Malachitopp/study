@@ -115,4 +115,4 @@ Work top to bottom. Do not jump ahead to polish.
 
 ## Status (July 2026)
 
-Architecture and schema designed. JS bootstrap in progress (functions, `.filter`/`.map`/`.reduce`, objects/destructuring, Promises/`async`/`await` covered). Next: finish bootstrap → backend core (auth, users, modules, tasks, commitments CRUD).
+Architecture and schema designed. JS bootstrap covered (functions, `.filter`/`.map`/`.reduce`, objects/destructuring, Promises/`async`/`await`). **Backend core (build step 2) is complete**: auth (register/login, hashed passwords, JWT) and full CRUD for `users`/`modules`/`tasks`/`commitments`, all ownership-scoped, tested end-to-end via Swagger UI against a live Neon Postgres database. See `PROGRESS.md` for the detailed technical handoff (file layout, environment gotchas, test data). Next: build step 3, the deadline worker.
