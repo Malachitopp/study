@@ -32,5 +32,8 @@ app.include_router(tasks.router)
 app.include_router(commitments.router)
 
 
+@app.get("/health")
+def get_health():
+    return {"status":"ok"}
 
 

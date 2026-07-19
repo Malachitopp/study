@@ -2,9 +2,11 @@
 
 Technical handoff notes for resuming work — see CLAUDE.md for the project's architecture/rules, this file is just "where did we leave off."
 
-## Current state (2026-07-18)
+## Current state (2026-07-19)
 
 Backend core (CLAUDE.md build step 2) **and** the deadline worker (build step 3) are both complete. Auth + full CRUD for `modules`/`tasks`/`commitments` tested end-to-end through Swagger UI against a live Neon Postgres database; an APScheduler job runs every minute inside the FastAPI process, automatically finding overdue `active` commitments, marking them `failed`, and writing `transactions` ledger rows — verified working with zero manual intervention.
+
+**Build step 4 (React basics + Expo setup) is underway.** `mobile/` is a real Expo SDK 54 project (`create-expo-app` default template, expo-router + tabs), running live on a physical iPhone via Expo Go. In `mobile/app/(tabs)/index.tsx`, hands-on demonstrated so far: components (the file's own `HomeScreen`), props (`ThemedText`'s `type` prop, mirrored against its receiving component in `components/themed-text.tsx`), state (a tap counter via `useState`), and `useEffect` performing a real `fetch` against the FastAPI backend's new `GET /health` endpoint over the LAN, storing the result in state and rendering it. Full loop confirmed working end-to-end.
 
 ## What exists
 
@@ -38,6 +40,8 @@ One real test user exists: `malachi@example.com` (id 1), plus various test modul
 - **Both sides of a `back_populates` pair must name each other exactly** — `A.b = relationship("B", back_populates="a")` requires `B` to have an attribute literally named `a`. Got this wrong twice (`Module`/`Task`, then `Commitment`/`Checkin`/`Transaction`) — a mismatch doesn't fail until the first real query anywhere in the app, and the error (`Mapper 'X' has no property 'y'`) can look unrelated to the actual broken pair.
 - **`Base.metadata.create_all()` only creates missing tables — it never alters an existing one.** Changing a column's type (or any other property) on a model that already has a live table requires either dropping and recreating that table (fine for disposable test data) or a real Alembic migration (needed once real data exists). Hit this directly with `Transaction.stripe_payment_id`.
 - **`.env` holds the real Neon connection string and secret key** — confirmed never committed (`.gitignore` + `git check-ignore` both checked). Never paste its contents into a chat session.
+- **Expo Go only supports one SDK version at a time** — whatever it currently ships with, not a range. `create-expo-app` always grabs the newest SDK by default, which can be ahead of what Expo Go on the App Store actually supports yet. If you hit "Project is incompatible with this version of Expo Go," pin the project to match: `npx create-expo-app@latest mobile --template default@sdk-54` (adjust the SDK number to whatever Expo Go currently reports).
+- **A phone testing over Expo Go is a separate physical device from this PC** — `http://localhost:8000` or `127.0.0.1:8000` in fetch code means "this device," i.e. the phone itself, not the laptop. Use the PC's actual LAN IP (`ipconfig` → IPv4 address) instead, and run uvicorn with `--host 0.0.0.0` (the default `127.0.0.1` only accepts connections from the same machine, not from other devices on the network).
 
 ## Next step
 
