@@ -9,6 +9,7 @@ from app.worker import process_deadlines
 from app.routers import commitments
 from app.routers import tasks
 from app.routers import modules 
+from app.routers import checkins
 
 scheduler = BackgroundScheduler()
 
@@ -18,7 +19,7 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(process_deadlines, "interval", minutes=1)
     scheduler.start()
     yield
-    scheduler.shutdown()
+    scheduler.shutdown() 
 
 
 app = FastAPI(title = "StudyMaxx", lifespan=lifespan) 
@@ -31,6 +32,9 @@ app.include_router(tasks.router)
 
 app.include_router(commitments.router)
 
+app.include_router(commitments.my_commitments)
+
+app.include_router(checkins.checkin_router)
 
 @app.get("/health")
 def get_health():

@@ -21,7 +21,7 @@ class Commitment(Base):
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey("tasks.id"), nullable = False)
     stake_pence = Column(Integer, nullable = False) 
-    deadline = Column(DateTime, nullable = False)
+    deadline = Column(DateTime(timezone=True), nullable = False)
     verification_type = Column(SAEnum(VerificationType),nullable = False )
     status = Column(SAEnum(CommitmentStatus), nullable = False, default = CommitmentStatus.active)
 

@@ -9,7 +9,7 @@ import { Link } from 'expo-router';
 
 import { useState, useEffect } from 'react';
 import { Button } from 'react-native';
-
+import { TextInput } from 'react-native'
 
 
 
@@ -18,6 +18,7 @@ export default function HomeScreen() {
   
   const[count, setCount] = useState(0) ;
   const[health, setHealth] = useState<string| null > (null);
+  const[modules, setModules] = useState<{id:number; name: string}[]>([]);
 
   useEffect( () => {
     const loadHealth = async () => { 
@@ -27,6 +28,82 @@ export default function HomeScreen() {
     };
     loadHealth();
   }, []);
+
+  const[email, setEmail] = useState('') ;
+  const[password, setPassword] = useState('');
+  const[token, setToken] = useState<string | null>(null) ;
+
+  const handleLogin = async ()=>{
+    const response = await fetch('http://192.168.0.100:8000/auth/login', { 
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `username=${email}&password=${password}`,
+    });
+    const data = await response.json();
+    setToken(data.access_token);
+  }
+  
+  useEffect(() => {
+    if (!token) return;
+    const loadModules = async () => {
+      const response = await fetch('http://192.168.0.100:8000/modules/', {
+        headers: {Authorization: 'Bearer ' + token}
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.log('modules fetch failed', response.status, data);
+        return;
+      }
+      setModules(data);
+    };
+    loadModules();
+  }, [token]);
+
+
+  const[commitments, setCommitments] = useState<{id:number; stake_pence: number;
+    deadline: string; status: string;
+  }[]>([]);
+
+  const loadCommitments = async() => {
+        const response = await fetch('http://192.168.0.100:8000/commitments/', {
+          headers: {Authorization: 'Bearer ' + token}  
+        });
+        const data = await response.json() ;
+        if (!response.ok) {
+          console.log('commitments fetch failed', response.status, data)
+          return;
+        };
+        setCommitments(data);
+
+      };
+  useEffect(()=>{
+    if (token) loadCommitments();
+  }, [token]);
+
+
+
+  const handleCreateCommitment = async() => {
+    const response = await fetch('http://192.168.0.100:8000/tasks/1/commitments/',{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + token 
+      },
+      body: JSON.stringify({
+        stake_pence: 500,
+        deadline: '2026-07-25T18:00:00',
+        verification_type: 'timer',
+      }),
+
+    });
+    const data = await response.json();
+    if (!response.ok) {console.log('create failed', response.status, data); return;}
+    loadCommitments();
+  };
+
+   
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -98,9 +175,33 @@ export default function HomeScreen() {
       <ThemedText type = "subtitle"> Step 4: Try state</ThemedText>
       <Button title = {`Tapped ${count} times`} onPress={() => setCount(count + 1)} />
       <ThemedText>Backend says: {health ?? 'loading...'} </ThemedText>
+      {modules.map((module) => (<ThemedText key = {module.id} > {module.name}</ThemedText> ))} 
+        
     </ThemedView>
+    
+    <ThemedView>
+      <TextInput
+        value = {email}
+        onChangeText = {setEmail}
+        placeholder='Email'/>
+      <TextInput
+        value = {password}
+        onChangeText = {setPassword}
+        placeholder='Password'/>
+        <Button title = {'Log in'} onPress={handleLogin}/>
+        <ThemedText>{token ? 'Logged in ✓' : 'Not logged in'}</ThemedText>
+    </ThemedView>
+    
+    <ThemedView style = {styles.stepContainer}>
+      <ThemedText type = "subtitle"> Commitments</ThemedText>
+      {commitments.map((c)=>(
+        <ThemedText key ={c.id}>£{(c.stake_pence/100).toFixed(2)} | {c.status} due {c.deadline}</ThemedText>
+      ))}
+      <Button title="Create commitment" onPress={handleCreateCommitment} />
 
-
+    </ThemedView>
+    
+  
     </ParallaxScrollView>
     
   );

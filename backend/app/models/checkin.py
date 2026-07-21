@@ -7,7 +7,7 @@ class Checkin(Base):
 
     id = Column(Integer, primary_key=True)
     commitment_id = Column(Integer, ForeignKey("commitments.id"), nullable = False)
-    submitted_at = Column(DateTime, nullable = False)
+    submitted_at = Column(DateTime(timezone=True), nullable = False)
     evidence_url = Column(String, nullable=True)
     focus_seconds = Column(Integer, nullable=True)
 
