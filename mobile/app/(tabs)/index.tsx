@@ -10,8 +10,10 @@ import { Link } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Button } from 'react-native';
 import { TextInput } from 'react-native'
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 
+const API_URL = 'http://192.168.0.100:8000';
 
 
 export default function HomeScreen() {
@@ -22,7 +24,7 @@ export default function HomeScreen() {
 
   useEffect( () => {
     const loadHealth = async () => { 
-      const response = await fetch('http://192.168.0.100:8000/health');
+      const response = await fetch(`${API_URL}/health`);
       const data = await response.json();
       setHealth(data.status);
     };
@@ -34,7 +36,7 @@ export default function HomeScreen() {
   const[token, setToken] = useState<string | null>(null) ;
 
   const handleLogin = async ()=>{
-    const response = await fetch('http://192.168.0.100:8000/auth/login', { 
+    const response = await fetch(`${API_URL}/auth/login`, { 
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded' },
       body: `username=${email}&password=${password}`,
@@ -46,7 +48,7 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!token) return;
     const loadModules = async () => {
-      const response = await fetch('http://192.168.0.100:8000/modules/', {
+      const response = await fetch(`${API_URL}/modules/`, {
         headers: {Authorization: 'Bearer ' + token}
       });
       const data = await response.json();
@@ -66,7 +68,7 @@ export default function HomeScreen() {
   }[]>([]);
 
   const loadCommitments = async() => {
-        const response = await fetch('http://192.168.0.100:8000/commitments/', {
+        const response = await fetch(`${API_URL}/commitments/`, {
           headers: {Authorization: 'Bearer ' + token}  
         });
         const data = await response.json() ;
@@ -80,19 +82,22 @@ export default function HomeScreen() {
   useEffect(()=>{
     if (token) loadCommitments();
   }, [token]);
+  const[stakePounds, setStakePounds] = useState('');
+  const [deadlineDate, setDeadlineDate] = useState(new Date())
+
 
 
 
   const handleCreateCommitment = async() => {
-    const response = await fetch('http://192.168.0.100:8000/tasks/1/commitments/',{
+    const response = await fetch(`${API_URL}/tasks/1/commitments/`,{
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: 'Bearer ' + token 
       },
       body: JSON.stringify({
-        stake_pence: 500,
-        deadline: '2026-07-25T18:00:00',
+        stake_pence: Math.round(Number(stakePounds)* 100),
+        deadline: deadlineDate.toISOString(),
         verification_type: 'timer',
       }),
 
@@ -102,7 +107,42 @@ export default function HomeScreen() {
     loadCommitments();
   };
 
-   
+
+  const [seconds, setSeconds] = useState(0);
+  const[running, setRunning] = useState(false);
+
+  useEffect(()=>{
+    if (!running) return;
+    const id = setInterval(() => {
+      setSeconds((s) => s + 1);
+
+    }, 1000);
+    return () => clearInterval(id);
+  }, [running]);
+  
+
+  const handleCheckin = async(id: number) => {
+    const response = await fetch(`${API_URL}/commitments/${id}/checkins/`, {
+      method:  'POST',
+      headers: {Authorization: 'Bearer ' + token,
+      'Content-Type': 'application/json',
+      
+      },
+      body: JSON.stringify({focus_seconds:seconds}),
+
+
+    });
+    const data = await response.json() 
+    if (!response.ok) {console.log('checkin failed', response.status, data);
+      return;
+    };
+    setRunning(false);
+    setSeconds(0);
+    loadCommitments();
+    
+  };
+
+
 
   return (
     <ParallaxScrollView
@@ -113,109 +153,78 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="subtitle">Hello!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
+        <ThemedView style ={styles.page}> 
+      
+      
+          <ThemedView>
+            <TextInput
+              style = {styles.input}
+              value = {email}
+              onChangeText = {setEmail}
+              placeholder='Email'/>
+              
+            <TextInput
+              style = {styles.input}
+              value = {password}
+              onChangeText = {setPassword}
+              placeholder='Password'/>
+              <Button title = {'Log in'} onPress={handleLogin}/>
+              <ThemedText>{token ? 'Logged in ✓' : 'Not logged in'}</ThemedText>
+          </ThemedView>
+          
+          <ThemedView style = {styles.section}>
+            <ThemedText type = "subtitle"> Commitments</ThemedText>
+            <TextInput 
+            style = {styles.input} 
+            keyboardType='numeric'
+            value={stakePounds}
+            onChangeText={setStakePounds}
+            placeholder='£ Stake'
             />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+            <DateTimePicker
+               value ={deadlineDate}
+               mode = "datetime"
+               onChange={(event, selectedDate) => {
+                if (selectedDate) setDeadlineDate(selectedDate)
+               }}/>
+            <ThemedText> {deadlineDate.toISOString()}</ThemedText>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-        
-    <ThemedView style = {styles.stepContainer}>
-      <ThemedText type = "subtitle"> Step 4: Try state</ThemedText>
-      <Button title = {`Tapped ${count} times`} onPress={() => setCount(count + 1)} />
-      <ThemedText>Backend says: {health ?? 'loading...'} </ThemedText>
-      {modules.map((module) => (<ThemedText key = {module.id} > {module.name}</ThemedText> ))} 
-        
-    </ThemedView>
-    
-    <ThemedView>
-      <TextInput
-        value = {email}
-        onChangeText = {setEmail}
-        placeholder='Email'/>
-      <TextInput
-        value = {password}
-        onChangeText = {setPassword}
-        placeholder='Password'/>
-        <Button title = {'Log in'} onPress={handleLogin}/>
-        <ThemedText>{token ? 'Logged in ✓' : 'Not logged in'}</ThemedText>
-    </ThemedView>
-    
-    <ThemedView style = {styles.stepContainer}>
-      <ThemedText type = "subtitle"> Commitments</ThemedText>
-      {commitments.map((c)=>(
-        <ThemedText key ={c.id}>£{(c.stake_pence/100).toFixed(2)} | {c.status} due {c.deadline}</ThemedText>
-      ))}
-      <Button title="Create commitment" onPress={handleCreateCommitment} />
+            {commitments.map((c)=>(
+              <ThemedView key={c.id} style = {styles.row}>
+                <ThemedText>£{(c.stake_pence/100).toFixed(2)} | {c.status} due {c.deadline}</ThemedText>
+                <Button title = "Check in" onPress={() => handleCheckin(c.id)}/>
+              </ThemedView>
+            ))}
+            <Button title="Create commitment" onPress={handleCreateCommitment} />
 
-    </ThemedView>
-    
-  
+          </ThemedView>
+
+          <ThemedView>
+            <Button title={running ? 'Pause' : 'Start'} onPress={
+              () => setRunning(!running)} />
+            <ThemedText>{seconds}s</ThemedText>
+              
+          </ThemedView>
+        </ThemedView>
     </ParallaxScrollView>
     
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  input: {
+    borderWidth: 1 ,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12, 
+    marginBottom:8,
   },
-  stepContainer: {
+  page: {
+    padding: 16,
+    gap:16
+  },
+  section: {
     gap: 8,
-    marginBottom: 8,
   },
   reactLogo: {
     height: 178,
@@ -224,4 +233,10 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
   },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
 });
