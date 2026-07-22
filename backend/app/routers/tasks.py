@@ -37,3 +37,10 @@ def list_tasks(module_id:int, db:Session = Depends(get_db), current_user: User
     module = get_owned_module(module_id, db, current_user)
     return db.query(Task).filter(Task.module_id == module.id).all() 
 
+my_tasks = APIRouter(prefix="/tasks", tags=["tasks"])
+
+@my_tasks.get("/", response_model = List[TaskOut])
+def get_tasks( db:Session = Depends(get_db),
+              current_user: User = Depends(get_current_user)):
+    return db.query(Task).join(Task.module).filter(Module.user_id==
+                                                    current_user.id).all()
