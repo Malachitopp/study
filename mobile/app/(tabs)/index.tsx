@@ -11,19 +11,22 @@ import { useState, useEffect } from 'react';
 import { Button } from 'react-native';
 import { TextInput } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as SecureStore from 'expo-secure-store'
+
+
 
 
 const API_URL = 'http://192.168.0.100:8000';
 
 
 export default function HomeScreen() {
-  
+
   const[count, setCount] = useState(0) ;
   const[health, setHealth] = useState<string| null > (null);
   const[modules, setModules] = useState<{id:number; name: string}[]>([]);
 
   useEffect( () => {
-    const loadHealth = async () => { 
+    const loadHealth = async () => {
       const response = await fetch(`${API_URL}/health`);
       const data = await response.json();
       setHealth(data.status);
@@ -36,15 +39,16 @@ export default function HomeScreen() {
   const[token, setToken] = useState<string | null>(null) ;
 
   const handleLogin = async ()=>{
-    const response = await fetch(`${API_URL}/auth/login`, { 
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded' },
       body: `username=${email}&password=${password}`,
     });
     const data = await response.json();
     setToken(data.access_token);
+    await SecureStore.setItemAsync('token', data.access_token)
   }
-  
+
   useEffect(() => {
     if (!token) return;
     const loadModules = async () => {
@@ -69,7 +73,7 @@ export default function HomeScreen() {
 
   const loadCommitments = async() => {
         const response = await fetch(`${API_URL}/commitments/`, {
-          headers: {Authorization: 'Bearer ' + token}  
+          headers: {Authorization: 'Bearer ' + token}
         });
         const data = await response.json() ;
         if (!response.ok) {
@@ -82,18 +86,36 @@ export default function HomeScreen() {
   useEffect(()=>{
     if (token) loadCommitments();
   }, [token]);
+
   const[stakePounds, setStakePounds] = useState('');
   const [deadlineDate, setDeadlineDate] = useState(new Date())
 
+  const [task, setTask] = useState<{id:number; title:string}[]>([]);
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+
+  const loadtasks = async () => {
+    const response = await fetch(`${API_URL}/tasks/`, {
+      headers: {Authorization: 'Bearer ' + token }
+    });
+    const data = await response.json();
+    if (!response.ok) {console.log('tasks fetch failed', response.status, data);
+      return;
+    }
+
+      setTask(data)
+    };
+    useEffect( () =>{
+      if (token) loadtasks();
+    }, [token]);
 
 
 
   const handleCreateCommitment = async() => {
-    const response = await fetch(`${API_URL}/tasks/1/commitments/`,{
+    const response = await fetch(`${API_URL}/tasks/${selectedTaskId}/commitments/`,{
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + token 
+        Authorization: 'Bearer ' + token
       },
       body: JSON.stringify({
         stake_pence: Math.round(Number(stakePounds)* 100),
@@ -119,30 +141,39 @@ export default function HomeScreen() {
     }, 1000);
     return () => clearInterval(id);
   }, [running]);
-  
+
 
   const handleCheckin = async(id: number) => {
     const response = await fetch(`${API_URL}/commitments/${id}/checkins/`, {
       method:  'POST',
       headers: {Authorization: 'Bearer ' + token,
       'Content-Type': 'application/json',
-      
+
       },
       body: JSON.stringify({focus_seconds:seconds}),
 
 
     });
-    const data = await response.json() 
+    const data = await response.json()
     if (!response.ok) {console.log('checkin failed', response.status, data);
       return;
     };
     setRunning(false);
     setSeconds(0);
     loadCommitments();
-    
+
   };
 
-
+  useEffect(() => {
+    const restoreToken = async () => {
+      const saved = await SecureStore.getItemAsync('token');
+      if (saved) {
+        setToken(saved)
+      }
+    };
+    restoreToken();
+  }, []);
+  
 
   return (
     <ParallaxScrollView
@@ -153,16 +184,15 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }>
-        <ThemedView style ={styles.page}> 
-      
-      
-          <ThemedView>
+        <ThemedView style ={styles.page}>
+          {!token && (
+            <ThemedView>
             <TextInput
               style = {styles.input}
               value = {email}
               onChangeText = {setEmail}
               placeholder='Email'/>
-              
+
             <TextInput
               style = {styles.input}
               value = {password}
@@ -170,12 +200,15 @@ export default function HomeScreen() {
               placeholder='Password'/>
               <Button title = {'Log in'} onPress={handleLogin}/>
               <ThemedText>{token ? 'Logged in ✓' : 'Not logged in'}</ThemedText>
-          </ThemedView>
-          
-          <ThemedView style = {styles.section}>
-            <ThemedText type = "subtitle"> Commitments</ThemedText>
-            <TextInput 
-            style = {styles.input} 
+            </ThemedView>
+
+          )}
+          {token &&(
+            <>
+            <ThemedView style = {styles.section}>
+            <ThemedText type='subtitle'>New Commitment</ThemedText>
+            <TextInput
+            style = {styles.input}
             keyboardType='numeric'
             value={stakePounds}
             onChangeText={setStakePounds}
@@ -188,6 +221,16 @@ export default function HomeScreen() {
                 if (selectedDate) setDeadlineDate(selectedDate)
                }}/>
             <ThemedText> {deadlineDate.toISOString()}</ThemedText>
+            {task.map( (t) => (
+              <Button
+              key={t.id}
+              title={t.title}
+              color = {selectedTaskId === t.id ? 'green' : undefined}
+              onPress={() => setSelectedTaskId(t.id)}/>
+            ))}
+          </ThemedView>
+          <ThemedView style = {styles.section}>
+            <ThemedText type = "subtitle"> Your Commitments</ThemedText>
 
             {commitments.map((c)=>(
               <ThemedView key={c.id} style = {styles.row}>
@@ -203,11 +246,13 @@ export default function HomeScreen() {
             <Button title={running ? 'Pause' : 'Start'} onPress={
               () => setRunning(!running)} />
             <ThemedText>{seconds}s</ThemedText>
-              
+
           </ThemedView>
+          </>
+          )}
         </ThemedView>
     </ParallaxScrollView>
-    
+
   );
 }
 
@@ -216,7 +261,7 @@ const styles = StyleSheet.create({
     borderWidth: 1 ,
     borderColor: '#ccc',
     borderRadius: 8,
-    padding: 12, 
+    padding: 12,
     marginBottom:8,
   },
   page: {
