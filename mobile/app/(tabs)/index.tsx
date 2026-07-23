@@ -12,15 +12,16 @@ import { Button } from 'react-native';
 import { TextInput } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as SecureStore from 'expo-secure-store'
+import {useRouter} from 'expo-router'
 
 
 
+export const API_URL = 'http://192.168.0.100:8000';
 
-const API_URL = 'http://192.168.0.100:8000';
 
 
 export default function HomeScreen() {
-
+  const router = useRouter();
   const[count, setCount] = useState(0) ;
   const[health, setHealth] = useState<string| null > (null);
   const[modules, setModules] = useState<{id:number; name: string}[]>([]);
@@ -49,22 +50,18 @@ export default function HomeScreen() {
     await SecureStore.setItemAsync('token', data.access_token)
   }
 
+  const loadModules = async () => {
+    const response = await fetch(`${API_URL}/modules/`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const data = await response.json();
+    if (!response.ok) { console.log('modules fetch failed', response.status, data); return; }
+    setModules(data);
+  };
   useEffect(() => {
-    if (!token) return;
-    const loadModules = async () => {
-      const response = await fetch(`${API_URL}/modules/`, {
-        headers: {Authorization: 'Bearer ' + token}
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.log('modules fetch failed', response.status, data);
-        return;
-      }
-      setModules(data);
-    };
-    loadModules();
+    if (token) loadModules();
   }, [token]);
+  
 
 
   const[commitments, setCommitments] = useState<{id:number; stake_pence: number;
@@ -174,6 +171,44 @@ export default function HomeScreen() {
     restoreToken();
   }, []);
   
+  const [transactions, setTransactions] = useState<{id:number; 
+    amount_pence: number; reason: string
+  }[]>([]);
+
+ 
+  const loadTransactions = async () => {
+      const response = await fetch(`${API_URL}/transactions/`, {
+        method: 'GET',
+        headers: {Authorization: 'Bearer ' + token},
+      });
+      const data = await response.json();
+      if (!response.ok) {console.log('transactions fetch failed', response.status,
+        data); return; } 
+      
+      setTransactions(data);
+    };
+    useEffect(() => {
+      if (token) loadTransactions();
+    }, [token]);
+
+  const[moduleName, setmoduleName] = useState('');
+  const[moduleTerm, setmoduleTerm] = useState('') 
+
+  const handleCreateModule = async () => {
+    const response = await fetch(`${API_URL}/modules/`, {
+      method:'POST',
+      headers: { 'Content-Type': 'application/json', Authorization:'Bearer ' + token},
+      body: JSON.stringify({name : moduleName, term: moduleTerm}),
+    });
+    const data = await response.json() 
+    if (!response.ok) { console.log('create module failed', response.status, data); return; }
+    loadModules();   
+  }
+  
+  const handleLogout = async () => {
+    await SecureStore.deleteItemAsync('token')
+    setToken(null);
+  };
 
   return (
     <ParallaxScrollView
@@ -191,20 +226,53 @@ export default function HomeScreen() {
               style = {styles.input}
               value = {email}
               onChangeText = {setEmail}
-              placeholder='Email'/>
+              placeholder='Email'
+              placeholderTextColor='#888'/>
+              
 
             <TextInput
               style = {styles.input}
               value = {password}
               onChangeText = {setPassword}
-              placeholder='Password'/>
+              placeholder='Password'
+              placeholderTextColor='#888'/>
+              
               <Button title = {'Log in'} onPress={handleLogin}/>
               <ThemedText>{token ? 'Logged in ✓' : 'Not logged in'}</ThemedText>
             </ThemedView>
+            
 
           )}
           {token &&(
             <>
+            <ThemedView style={styles.section}>
+              <ThemedText type="subtitle">Your Modules</ThemedText>
+              {modules.map((m) => (
+                <Button key={m.id} title={m.name} onPress={() => router.push(`/module/${m.id}`)} />
+              ))}
+            </ThemedView>
+
+            <ThemedView style ={styles.section}>
+              <Button title = "log out" onPress={handleLogout}/>
+              <ThemedText type="subtitle">New Module</ThemedText>
+              <TextInput
+                style = {styles.input}
+                value={moduleName}
+                onChangeText={setmoduleName}
+                placeholderTextColor='#888'
+                placeholder='Module name'
+                
+              />
+              <TextInput
+              style = {styles.input}
+              value = {moduleTerm}
+              onChangeText={setmoduleTerm}
+              placeholder='Module Term'
+              placeholderTextColor='#888'
+              />
+              <Button title='Add Module' onPress={handleCreateModule}/>
+              
+            </ThemedView>
             <ThemedView style = {styles.section}>
             <ThemedText type='subtitle'>New Commitment</ThemedText>
             <TextInput
@@ -216,7 +284,7 @@ export default function HomeScreen() {
             />
             <DateTimePicker
                value ={deadlineDate}
-               mode = "datetime"
+               mode = 'datetime'
                onChange={(event, selectedDate) => {
                 if (selectedDate) setDeadlineDate(selectedDate)
                }}/>
@@ -247,6 +315,13 @@ export default function HomeScreen() {
               () => setRunning(!running)} />
             <ThemedText>{seconds}s</ThemedText>
 
+          </ThemedView>
+
+          <ThemedView style = {styles.section}>
+            <ThemedText type = "subtitle">Ledger</ThemedText>
+            {transactions.map((t) => (
+              <ThemedText key = {t.id}>£{(t.amount_pence / 100).toFixed(2)} - {t.reason}</ThemedText>
+            ))}
           </ThemedView>
           </>
           )}
