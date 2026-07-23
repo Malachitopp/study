@@ -119,4 +119,6 @@ Architecture and schema designed. JS bootstrap covered. **Backend core (step 2)*
 
 **Working priority (steer from 2026-07-20, in auto-memory):** the goal *this phase* is learning to code, not product validation — so the "live with it for a week before building more" guard rail is set aside; keep building continuously, with UI/styling now in scope as real RN learning. Still premature: app icons, onboarding, App-Store polish.
 
-**Next:** (1) ledger view over `transactions` (flat user-scoped endpoint + list screen — the last unbuilt corner of the loop's visibility); (2) multi-screen navigation via expo-router + component decomposition. See `PROGRESS.md` for the detailed technical handoff and smaller debts.
+**Since then:** the ledger is visible in-app (`GET /transactions/` + Ledger section), modules are creatable from the app, and **multi-screen navigation is underway** — the modules list navigates to a dynamic route `app/module/[id].tsx` (expo-router, `useLocalSearchParams`, per-screen token restore from SecureStore). A stale-token trap (15-min expiry vs forever-persistence → dead JWT → everything 401s) was diagnosed and mitigated with a logout button + 401-aware loaders.
+
+**Next:** (1) fix the broken `API_URL` import in `[id].tsx` via a shared `constants/api.ts`; (2) finish the module screen (fetch its tasks, move the create-commitment form there, slim down home); (3) component decomposition. See `PROGRESS.md` for the detailed handoff.
