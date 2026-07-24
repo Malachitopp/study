@@ -16,7 +16,7 @@ import {useRouter} from 'expo-router'
 
 
 
-export const API_URL = 'http://192.168.0.100:8000';
+import { API_URL } from '@/constants/api';
 
 
 
@@ -273,30 +273,7 @@ export default function HomeScreen() {
               <Button title='Add Module' onPress={handleCreateModule}/>
               
             </ThemedView>
-            <ThemedView style = {styles.section}>
-            <ThemedText type='subtitle'>New Commitment</ThemedText>
-            <TextInput
-            style = {styles.input}
-            keyboardType='numeric'
-            value={stakePounds}
-            onChangeText={setStakePounds}
-            placeholder='£ Stake'
-            />
-            <DateTimePicker
-               value ={deadlineDate}
-               mode = 'datetime'
-               onChange={(event, selectedDate) => {
-                if (selectedDate) setDeadlineDate(selectedDate)
-               }}/>
-            <ThemedText> {deadlineDate.toISOString()}</ThemedText>
-            {task.map( (t) => (
-              <Button
-              key={t.id}
-              title={t.title}
-              color = {selectedTaskId === t.id ? 'green' : undefined}
-              onPress={() => setSelectedTaskId(t.id)}/>
-            ))}
-          </ThemedView>
+           
           <ThemedView style = {styles.section}>
             <ThemedText type = "subtitle"> Your Commitments</ThemedText>
 

@@ -1,8 +1,14 @@
 import { useLocalSearchParams } from "expo-router";
-import { ThemedText } from "@/components/themed-text";
+import { ThemedText} from "@/components/themed-text";
+import { Button, TextInput } from 'react-native'
+import { ThemedView } from '@/components/themed-view';
 import { useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store'
-import { API_URL } from "../(tabs)";
+import { API_URL } from '@/constants/api';
+import { Image } from 'expo-image';
+import { StyleSheet } from 'react-native';
+import ParallaxScrollView from "@/components/parallax-scroll-view";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function ModuleScreen() {
     const{id} = useLocalSearchParams();
@@ -17,13 +23,183 @@ export default function ModuleScreen() {
         restoreToken();
     },[]);
 
+    const [task, setTask] = useState<{id:number; title:string}[]>([]);
+    const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+
+    const loadtasks = async () => {
+        const response = await fetch(`${API_URL}/modules/${id}/tasks/`, {
+        headers: {Authorization: 'Bearer ' + token }
+        });
+        const data = await response.json();
+        if (!response.ok) {console.log('tasks fetch failed', response.status, data);
+        return;
+        }
+
+        setTask(data)
+        };
+        useEffect( () =>{
+        if (token) loadtasks();
+        }, [token]);
+    
+    const [taskTitle, setTaskTitle] = useState('');
+    const [selectedKind, setSelectedKind] = useState<string | null>(null);
+    const [taskDueDate, setTaskDueDate] = useState(new Date());
+
+    const handleCreateTask = async () => {
+        const response = await fetch(`${API_URL}/modules/${id}/tasks/`, {
+            method : 'POST',
+            headers: {'Content-Type': 'application/json',Authorization: 'Bearer ' + token},
+            body: JSON.stringify({title: taskTitle, kind : selectedKind,
+                 due_at: taskDueDate.toISOString()})
+        });
+        const data = await response.json() 
+        if (!response.ok) {console.log('failed', response.status, data); return;}
+        loadtasks();
+        setTaskTitle('');
+        setSelectedKind(null);
+
+    };
+    const TASK_KINDS = ['problem_sheet', 'revision', 'reading', 'coursework'];
+   
+
+    
+
+ 
+    const[stakePounds, setStakePounds] = useState('');
+    const [deadlineDate, setDeadlineDate] = useState(new Date())
+
+    const handleCreateCommitment = async () =>{
+        const response = await fetch(`${API_URL}/tasks/${selectedTaskId}/commitments/`,
+            {
+                method: 'POST',
+                headers: {Authorization: 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                 },
+                 body: JSON.stringify({
+                    stake_pence: Math.round(Number(stakePounds) * 100 ), 
+                    deadline: deadlineDate.toISOString(),
+                    verification_type:'timer'
+                 }),
+            }
+        );
+        const data = await response.json();
+        if (!response.ok) {console.log('create failed', response.status, data); return;}
+        setStakePounds('');
+    }
+
+
+
+
+
 
 
     return (
-    <ThemedText>module {id}</ThemedText>
+    <ParallaxScrollView
+        headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+        headerImage={
+            <Image
+              source={require('@/assets/images/partial-react-logo.png')}
+              style={styles.reactLogo}
+            />
+          }>
+     <ThemedText>module {id}</ThemedText>
+     <ThemedView style={styles.page}>
+        <TextInput
+            style = {styles.input}
+            value = { taskTitle}
+            onChangeText={setTaskTitle}
+            placeholder="Title"
+            placeholderTextColor='#f8f8f8'
+        />
+        <DateTimePicker
+            value = {taskDueDate}
+            mode = "datetime"
+            onChange={(event, selectedDate) => {
+                if (selectedDate) setTaskDueDate(selectedDate)
+            }}
+            />
+        {TASK_KINDS.map((k) => (
+            <Button
+            key={k}
+            title={k}
+            color = {selectedKind === k ? 'green' : undefined}
+            onPress={() => setSelectedKind(k)}
+            />
+        ))}
+        <Button title = {"Create task"} onPress={handleCreateTask}/>
+     </ThemedView> 
+        <ThemedView>
+            {task.map((c) => (
+            <ThemedView key = {c.id} style = {styles.row}>
+                <ThemedText key = {c.id} > {c.title}</ThemedText>
+                <Button 
+                key = {c.id}
+                title = {'Create Commitment'}
+                color = {selectedTaskId === c.id ? 'green':undefined}
+                onPress={() => setSelectedTaskId(c.id)}/>
+            </ThemedView>
+        ))}
+
+        </ThemedView>
+        <ThemedView style = {styles.section}>
+            <ThemedText type='subtitle'>New Commitment</ThemedText>
+            <TextInput
+            style = {styles.input}
+            keyboardType='numeric'
+            value={stakePounds}
+            onChangeText={setStakePounds}
+            placeholder='£ Stake'
+            />
+            <DateTimePicker
+               value ={deadlineDate}
+               mode = 'datetime'
+               onChange={(event, selectedDate) => {
+                if (selectedDate) setDeadlineDate(selectedDate)
+               }}/>
+            <ThemedText> {deadlineDate.toISOString()}</ThemedText>
+            
+
+            <Button title="Create commitment" onPress={handleCreateCommitment} />
+          </ThemedView>
+        
+
+    </ParallaxScrollView>
+    
+
+    
 
 
 
 
     );
 }
+
+const styles = StyleSheet.create({
+  input: {
+    borderWidth: 1 ,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom:8,
+  },
+  page: {
+    padding: 16,
+    gap:16
+  },
+  section: {
+    gap: 8,
+  },
+  reactLogo: {
+    height: 178,
+    width: 290,
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+});
