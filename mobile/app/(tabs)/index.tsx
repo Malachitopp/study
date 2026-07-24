@@ -10,11 +10,11 @@ import { Link } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Button } from 'react-native';
 import { TextInput } from 'react-native'
-import DateTimePicker from '@react-native-community/datetimepicker';
+
 import * as SecureStore from 'expo-secure-store'
 import {useRouter} from 'expo-router'
-
-
+import { useFocusEffect } from 'expo-router'
+import { useCallback } from 'react';
 
 import { API_URL } from '@/constants/api';
 
@@ -22,19 +22,7 @@ import { API_URL } from '@/constants/api';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const[count, setCount] = useState(0) ;
-  const[health, setHealth] = useState<string| null > (null);
   const[modules, setModules] = useState<{id:number; name: string}[]>([]);
-
-  useEffect( () => {
-    const loadHealth = async () => {
-      const response = await fetch(`${API_URL}/health`);
-      const data = await response.json();
-      setHealth(data.status);
-    };
-    loadHealth();
-  }, []);
-
   const[email, setEmail] = useState('') ;
   const[password, setPassword] = useState('');
   const[token, setToken] = useState<string | null>(null) ;
@@ -54,13 +42,16 @@ export default function HomeScreen() {
     const response = await fetch(`${API_URL}/modules/`, {
       headers: { Authorization: 'Bearer ' + token }
     });
+            if (response.status === 401) {
+            await SecureStore.deleteItemAsync('token');
+            setToken(null);
+            router.replace('/');
+            return;}
     const data = await response.json();
     if (!response.ok) { console.log('modules fetch failed', response.status, data); return; }
     setModules(data);
   };
-  useEffect(() => {
-    if (token) loadModules();
-  }, [token]);
+
   
 
 
@@ -72,6 +63,11 @@ export default function HomeScreen() {
         const response = await fetch(`${API_URL}/commitments/`, {
           headers: {Authorization: 'Bearer ' + token}
         });
+                if (response.status === 401) {
+                await SecureStore.deleteItemAsync('token');
+                setToken(null);
+                router.replace('/');
+                return;}
         const data = await response.json() ;
         if (!response.ok) {
           console.log('commitments fetch failed', response.status, data)
@@ -80,51 +76,6 @@ export default function HomeScreen() {
         setCommitments(data);
 
       };
-  useEffect(()=>{
-    if (token) loadCommitments();
-  }, [token]);
-
-  const[stakePounds, setStakePounds] = useState('');
-  const [deadlineDate, setDeadlineDate] = useState(new Date())
-
-  const [task, setTask] = useState<{id:number; title:string}[]>([]);
-  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
-
-  const loadtasks = async () => {
-    const response = await fetch(`${API_URL}/tasks/`, {
-      headers: {Authorization: 'Bearer ' + token }
-    });
-    const data = await response.json();
-    if (!response.ok) {console.log('tasks fetch failed', response.status, data);
-      return;
-    }
-
-      setTask(data)
-    };
-    useEffect( () =>{
-      if (token) loadtasks();
-    }, [token]);
-
-
-
-  const handleCreateCommitment = async() => {
-    const response = await fetch(`${API_URL}/tasks/${selectedTaskId}/commitments/`,{
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + token
-      },
-      body: JSON.stringify({
-        stake_pence: Math.round(Number(stakePounds)* 100),
-        deadline: deadlineDate.toISOString(),
-        verification_type: 'timer',
-      }),
-
-    });
-    const data = await response.json();
-    if (!response.ok) {console.log('create failed', response.status, data); return;}
-    loadCommitments();
-  };
 
 
   const [seconds, setSeconds] = useState(0);
@@ -151,6 +102,11 @@ export default function HomeScreen() {
 
 
     });
+            if (response.status === 401) {
+            await SecureStore.deleteItemAsync('token');
+            setToken(null);
+            router.replace('/');
+            return;}
     const data = await response.json()
     if (!response.ok) {console.log('checkin failed', response.status, data);
       return;
@@ -181,15 +137,18 @@ export default function HomeScreen() {
         method: 'GET',
         headers: {Authorization: 'Bearer ' + token},
       });
+              if (response.status === 401) {
+              await SecureStore.deleteItemAsync('token');
+              setToken(null);
+              router.replace('/');
+              return;}
       const data = await response.json();
       if (!response.ok) {console.log('transactions fetch failed', response.status,
         data); return; } 
       
       setTransactions(data);
     };
-    useEffect(() => {
-      if (token) loadTransactions();
-    }, [token]);
+
 
   const[moduleName, setmoduleName] = useState('');
   const[moduleTerm, setmoduleTerm] = useState('') 
@@ -200,6 +159,11 @@ export default function HomeScreen() {
       headers: { 'Content-Type': 'application/json', Authorization:'Bearer ' + token},
       body: JSON.stringify({name : moduleName, term: moduleTerm}),
     });
+            if (response.status === 401) {
+            await SecureStore.deleteItemAsync('token');
+            setToken(null);
+            router.replace('/');
+            return;}
     const data = await response.json() 
     if (!response.ok) { console.log('create module failed', response.status, data); return; }
     loadModules();   
@@ -209,6 +173,13 @@ export default function HomeScreen() {
     await SecureStore.deleteItemAsync('token')
     setToken(null);
   };
+
+
+    useFocusEffect(
+    useCallback(() => {
+        if (token) {loadCommitments(), loadTransactions(), loadModules()};
+    }, [token])
+    );
 
   return (
     <ParallaxScrollView
@@ -283,7 +254,7 @@ export default function HomeScreen() {
                 <Button title = "Check in" onPress={() => handleCheckin(c.id)}/>
               </ThemedView>
             ))}
-            <Button title="Create commitment" onPress={handleCreateCommitment} />
+            
 
           </ThemedView>
 

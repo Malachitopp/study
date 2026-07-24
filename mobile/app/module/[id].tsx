@@ -1,16 +1,23 @@
-import { useLocalSearchParams } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ThemedText} from "@/components/themed-text";
 import { Button, TextInput } from 'react-native'
 import { ThemedView } from '@/components/themed-view';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store'
 import { API_URL } from '@/constants/api';
 import { Image } from 'expo-image';
 import { StyleSheet } from 'react-native';
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRouter } from 'expo-router'
+
+
+
+
 
 export default function ModuleScreen() {
+    const router = useRouter() 
+
     const{id} = useLocalSearchParams();
 
     const [token, setToken] = useState<string| null>(null);
@@ -30,6 +37,12 @@ export default function ModuleScreen() {
         const response = await fetch(`${API_URL}/modules/${id}/tasks/`, {
         headers: {Authorization: 'Bearer ' + token }
         });
+        if (response.status === 401) {
+        await SecureStore.deleteItemAsync('token');
+        setToken(null);
+        router.replace('/');
+        return;
+}
         const data = await response.json();
         if (!response.ok) {console.log('tasks fetch failed', response.status, data);
         return;
@@ -37,21 +50,34 @@ export default function ModuleScreen() {
 
         setTask(data)
         };
-        useEffect( () =>{
-        if (token) loadtasks();
-        }, [token]);
+    
+
+    useFocusEffect(
+        useCallback(()=>{
+            if (token) loadtasks();
+        }, [token,id])
+    );
     
     const [taskTitle, setTaskTitle] = useState('');
     const [selectedKind, setSelectedKind] = useState<string | null>(null);
     const [taskDueDate, setTaskDueDate] = useState(new Date());
 
     const handleCreateTask = async () => {
+        if (!taskTitle || !selectedKind) {
+            console.log("need a title and a kind");
+            return;
+        }
         const response = await fetch(`${API_URL}/modules/${id}/tasks/`, {
             method : 'POST',
             headers: {'Content-Type': 'application/json',Authorization: 'Bearer ' + token},
             body: JSON.stringify({title: taskTitle, kind : selectedKind,
                  due_at: taskDueDate.toISOString()})
         });
+        if (response.status === 401) {
+        await SecureStore.deleteItemAsync('token');
+        setToken(null);
+        router.replace('/');
+        return;}
         const data = await response.json() 
         if (!response.ok) {console.log('failed', response.status, data); return;}
         loadtasks();
@@ -69,6 +95,7 @@ export default function ModuleScreen() {
     const [deadlineDate, setDeadlineDate] = useState(new Date())
 
     const handleCreateCommitment = async () =>{
+        if (!selectedTaskId) {console.log("no id selected"); return;}
         const response = await fetch(`${API_URL}/tasks/${selectedTaskId}/commitments/`,
             {
                 method: 'POST',
@@ -82,6 +109,11 @@ export default function ModuleScreen() {
                  }),
             }
         );
+        if (response.status === 401) {
+        await SecureStore.deleteItemAsync('token');
+        setToken(null);
+        router.replace('/');
+        return;}
         const data = await response.json();
         if (!response.ok) {console.log('create failed', response.status, data); return;}
         setStakePounds('');
@@ -126,7 +158,7 @@ export default function ModuleScreen() {
             onPress={() => setSelectedKind(k)}
             />
         ))}
-        <Button title = {"Create task"} onPress={handleCreateTask}/>
+        <Button title = {"Create Task"} onPress={handleCreateTask}/>
      </ThemedView> 
         <ThemedView>
             {task.map((c) => (
@@ -134,7 +166,7 @@ export default function ModuleScreen() {
                 <ThemedText key = {c.id} > {c.title}</ThemedText>
                 <Button 
                 key = {c.id}
-                title = {'Create Commitment'}
+                title = {'Select ID'}
                 color = {selectedTaskId === c.id ? 'green':undefined}
                 onPress={() => setSelectedTaskId(c.id)}/>
             </ThemedView>
