@@ -2,7 +2,7 @@
 
 Technical handoff notes for resuming work — see CLAUDE.md for the project's architecture/rules, this file is just "where did we leave off."
 
-## Current state (2026-07-23)
+## Current state (2026-07-24)
 
 Backend core (CLAUDE.md build step 2) **and** the deadline worker (build step 3) are both complete. Auth + full CRUD for `modules`/`tasks`/`commitments` tested end-to-end through Swagger UI against a live Neon Postgres database; an APScheduler job runs every minute inside the FastAPI process, automatically finding overdue `active` commitments, marking them `failed`, and writing `transactions` ledger rows — verified working with zero manual intervention.
 
@@ -11,6 +11,8 @@ Backend core (CLAUDE.md build step 2) **and** the deadline worker (build step 3)
 **Build step 5 (core loop, ugliest possible version) is complete and runs end-to-end on the physical phone, and the create form is now fully real.** Verified on the iPhone: log in → create a commitment (real stake, real deadline via the native datetime picker, **and a real task chosen from a picker** — no more hardcoded `tasks/1`) → run an in-app focus timer → check in → watch it flip to `completed`; miss it and the worker fails it. New since the last handoff: the flat `GET /tasks/` endpoint behind the task picker, the committed `threshold` bug fixed (now `REQUIRED_FOCUS_SECONDS = 1500`), and **login persistence** — the JWT is saved to `expo-secure-store` on login and restored on launch, so you stay logged in across reloads, gated by conditional rendering (login form when logged out, app when logged in).
 
 **Since then (2026-07-22/23):** the **ledger is visible in-app** (new flat `GET /transactions/` endpoint + a Ledger section rendering `amount_pence`/`reason`); the app can **create modules** (New Module form → the long-existing `POST /modules/`, so Swagger is no longer needed for modules); the modules list renders as **tappable buttons that navigate** via expo-router (`router.push({ pathname: '/module/[id]', params: { id } })`) to a new **dynamic route `app/module/[id].tsx`** — currently a stub that reads `id` from `useLocalSearchParams()` and restores the JWT from SecureStore (screens don't share state; each screen re-reads storage). Also: a **stale-token trap was found and fixed in behaviour** (tokens expire in 15 min but SecureStore keeps them forever → auto-login restored a dead JWT → every fetch 401'd and all lists looked empty, with no way back to the login form) — mitigated with a Log out button (`deleteItemAsync` + `setToken(null)`) and 401-aware loaders; `handleLogin` now has try/catch + `response.ok` handling (a dead server used to fail silently).
+
+**Latest (2026-07-24): the module screen is now a full workspace.** `app/module/[id].tsx` shows the module's tasks (scoped fetch via the URL's `id`), has a **create-task form** (title input, kind picker over the four `TaskKind` values — selection-buttons pattern, a due-date `DateTimePicker`), task rows are **selectable** (green = `selectedTaskId`), and the **create-commitment form migrated here from home** (stake + deadline + POST to `/tasks/{selectedTaskId}/commitments/`). `API_URL` now lives in one place: `mobile/constants/api.ts` (`export const` imported by both screens — first shared own-code module). Token lifetime raised from 15 min to 30 days via `ACCESS_TOKEN_EXPIRE_MINUTES=43200` in `backend/.env` (the `Settings` field had a `=15` default, which is why it was never in `.env`; env key matches field name case-insensitively). **Not yet done:** the migrated form hasn't been tested end-to-end from the module screen; the old create form still sits duplicated on home (deletion = step 4 of the migration); empty-tap guards on both new handlers; uniform 401→logout across all loaders (module screen would need `router.replace('/')` since it has no login form).
 
 **Note on goals (steer from the session on 2026-07-20, also saved to auto-memory):** Malachi explicitly set aside CLAUDE.md's "live with it for a week before building anything else" guard rail. His priority this phase is **learning to code**, not product validation, so a dogfooding hiatus is counterproductive — keep building continuously. UI/layout/styling is now in scope as real React Native learning. The one thing still treated as premature: app icons, onboarding screens, and App-Store polish.
 
@@ -67,16 +69,22 @@ One real test user exists: `malachi@example.com` (id 1), plus various test modul
 
 ## Next step
 
-Mid-build: **the module detail screen** (`app/module/[id].tsx`). The chosen direction (Malachi picked multi-screen navigation over a single-page selection flow): home lists modules → tap one → its own screen shows *that module's* tasks → create a commitment there. The stub screen + navigation already work. Remaining, in order:
+The module screen is built but unproven. In order:
 
-**1. FIRST, small but blocking: `app/module/[id].tsx` line 5 has a broken import** — `import { API_URL } from "../(tabs)"` (editor auto-import; `API_URL` isn't exported from `index.tsx`, and a route file shouldn't be an import source anyway). Fix = the planned extraction: create `mobile/constants/api.ts` with `export const API_URL = 'http://192.168.0.100:8000'`, import it in both `index.tsx` (delete the local const) and `[id].tsx`. First time sharing own code across files.
+**1. Test the drill-down end-to-end:** module → tap a task (green) → stake → deadline → Create → expect 201 and the commitment visible on home *after a reload* (see #3). Watch the Expo console for `create failed ...` — the guards don't exist yet, so an empty tap POSTs to `/tasks/null/commitments/`.
 
-**2. Finish the module screen:** `tasks` state + fetch `GET /modules/{id}/tasks` (endpoint already exists) in a `[token]`-keyed effect, render the list. The `id` from `useLocalSearchParams()` is a **string** (URLs are text) — fine for template-literal URLs. Then move the create-commitment form (stake/deadline/picker) from home onto this screen, scoped to the chosen module's tasks; then slim home down to modules + ledger.
+**2. Add the missing guards + delete the old form from home.** Guards: `if (!selectedTaskId) return;` in `handleCreateCommitment`, `if (!taskTitle || !selectedKind) return;` in `handleCreateTask` (both in `[id].tsx`). Then step 4 of the migration: remove from `index.tsx` the now-duplicated `stakePounds`/`selectedTaskId` state, the flat task picker + its `loadtasks`/`task` state, `handleCreateCommitment`, and the New Commitment JSX — home slims to login gate, New Module form, modules list (navigation buttons), Your Commitments (+ check-in/timer), Ledger.
 
-**3. Component decomposition** after the screens settle: pull the login form / commitment row / timer into their own component files (real props practice).
+**3. Refresh-on-focus — now actually biting.** Creating a commitment on the module screen doesn't show on home when navigating back (home's loaders are `[token]`-keyed; back-navigation re-triggers nothing). Fix = `useFocusEffect` (re-run loaders when a screen regains focus) — check the v54 expo-router docs per `AGENTS.md`. Applies to commitments, ledger, and the module screen's task list alike.
+
+**4. Uniform 401 → logout.** Home loaders: `if (response.status === 401) { await SecureStore.deleteItemAsync('token'); setToken(null); return; }`. Module screen: same but `router.replace('/')` (no login form there). Partially done at best — sweep all loaders.
+
+**5. Component decomposition** after the screens settle: pull the login form / commitment row / timer into their own component files (real props practice).
 
 ### Known cleanups / smaller debts
 
+- **`Task.due_at` is a naive `DateTime`** (no `timezone=True`) — same story as the old commitment deadline. Harmless for now (nothing referees off `due_at`; enforcement lives on `Commitment.deadline`, which is `timestamptz`), but it joins the Alembic-someday pile. `# TODO` it in the model.
+- `[id].tsx` cosmetics: redundant `key` props on inner mapped children (only the outer element needs one); `placeholderTextColor='#f8f8f8'` is near-invisible in light mode (`'#888'` works in both themes); the task-row button label "Create Commitment" really means "select this task".
 - **Token expiry vs persistence:** tokens live 15 min; SecureStore keeps them forever. Mitigated (logout button, 401-aware loaders), but the real fix is a longer expiry or refresh tokens — decide when it annoys enough.
 - **Login flash on launch:** `token` is `null` for a frame before `restoreToken` resolves, so the login form flashes before the app appears. A small `isLoading` state (render nothing until the storage check finishes) fixes it.
 - `handleLogin` builds its form body by raw string interpolation, so a `+`/`&` in a password silently corrupts it — should `encodeURIComponent` both fields. (Still pending.)
