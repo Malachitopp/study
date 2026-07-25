@@ -8,7 +8,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 
 import { useState, useEffect } from 'react';
-import { Button } from 'react-native';
+
 import { TextInput } from 'react-native'
 
 import * as SecureStore from 'expo-secure-store'
@@ -17,6 +17,7 @@ import { useFocusEffect } from 'expo-router'
 import { useCallback } from 'react';
 
 import { API_URL } from '@/constants/api';
+import {AppButton} from '@/components/app-button';
 
 
 
@@ -208,7 +209,7 @@ export default function HomeScreen() {
               placeholder='Password'
               placeholderTextColor='#888'/>
               
-              <Button title = {'Log in'} onPress={handleLogin}/>
+              <AppButton title = {'Log in'} onPress={handleLogin}/>
               <ThemedText>{token ? 'Logged in ✓' : 'Not logged in'}</ThemedText>
             </ThemedView>
             
@@ -219,12 +220,12 @@ export default function HomeScreen() {
             <ThemedView style={styles.section}>
               <ThemedText type="subtitle">Your Modules</ThemedText>
               {modules.map((m) => (
-                <Button key={m.id} title={m.name} onPress={() => router.push(`/module/${m.id}`)} />
+                <AppButton key={m.id} title={m.name} onPress={() => router.push(`/module/${m.id}`)} />
               ))}
             </ThemedView>
 
             <ThemedView style ={styles.section}>
-              <Button title = "log out" onPress={handleLogout}/>
+              <AppButton title = "log out" onPress={handleLogout}/>
               <ThemedText type="subtitle">New Module</ThemedText>
               <TextInput
                 style = {styles.input}
@@ -241,7 +242,7 @@ export default function HomeScreen() {
               placeholder='Module Term'
               placeholderTextColor='#888'
               />
-              <Button title='Add Module' onPress={handleCreateModule}/>
+              <AppButton title='Add Module' onPress={handleCreateModule}/>
               
             </ThemedView>
            
@@ -251,7 +252,7 @@ export default function HomeScreen() {
             {commitments.map((c)=>(
               <ThemedView key={c.id} style = {styles.row}>
                 <ThemedText>£{(c.stake_pence/100).toFixed(2)} | {c.status} due {c.deadline}</ThemedText>
-                <Button title = "Check in" onPress={() => handleCheckin(c.id)}/>
+                <AppButton title = "Check in" onPress={() => handleCheckin(c.id)}/>
               </ThemedView>
             ))}
             
@@ -259,7 +260,7 @@ export default function HomeScreen() {
           </ThemedView>
 
           <ThemedView>
-            <Button title={running ? 'Pause' : 'Start'} onPress={
+            <AppButton title={running ? 'Pause' : 'Start'} onPress={
               () => setRunning(!running)} />
             <ThemedText>{seconds}s</ThemedText>
 

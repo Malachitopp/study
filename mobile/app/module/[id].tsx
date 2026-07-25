@@ -1,6 +1,6 @@
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ThemedText} from "@/components/themed-text";
-import { Button, TextInput } from 'react-native'
+import { TextInput } from 'react-native'
 import { ThemedView } from '@/components/themed-view';
 import { useState, useEffect, useCallback } from 'react';
 import * as SecureStore from 'expo-secure-store'
@@ -10,6 +10,8 @@ import { StyleSheet } from 'react-native';
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router'
+
+import { AppButton } from "@/components/app-button";
 
 
 
@@ -151,23 +153,23 @@ export default function ModuleScreen() {
             }}
             />
         {TASK_KINDS.map((k) => (
-            <Button
+            <AppButton
             key={k}
             title={k}
-            color = {selectedKind === k ? 'green' : undefined}
+            selected = {selectedKind === k }
             onPress={() => setSelectedKind(k)}
             />
         ))}
-        <Button title = {"Create Task"} onPress={handleCreateTask}/>
+        <AppButton title = {"Create Task"} onPress={handleCreateTask}/>
      </ThemedView> 
         <ThemedView>
             {task.map((c) => (
             <ThemedView key = {c.id} style = {styles.row}>
                 <ThemedText key = {c.id} > {c.title}</ThemedText>
-                <Button 
+                <AppButton 
                 key = {c.id}
                 title = {'Select ID'}
-                color = {selectedTaskId === c.id ? 'green':undefined}
+                selected = {selectedTaskId === c.id }
                 onPress={() => setSelectedTaskId(c.id)}/>
             </ThemedView>
         ))}
@@ -191,7 +193,7 @@ export default function ModuleScreen() {
             <ThemedText> {deadlineDate.toISOString()}</ThemedText>
             
 
-            <Button title="Create commitment" onPress={handleCreateCommitment} />
+            <AppButton title="Create commitment" onPress={handleCreateCommitment} />
           </ThemedView>
         
 
