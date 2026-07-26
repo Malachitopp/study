@@ -83,7 +83,7 @@ One real test user exists: `malachi@example.com` (id 1), plus various test modul
 
 **2. Run the 401 kill-test (still never run).** Stop uvicorn, change one char of `SECRET_KEY` in `backend/.env`, restart. Launch app → expect the login form, not silently empty lists. Repeat once from the module screen → expect to get bounced home.
 
-**3. Rung 3 — lists become `FlatList`s** with pull-to-refresh; commitment rows become a `CommitmentRow` component (card styling from tokens, stake prominent, status as a coloured badge, deadline humanised). Component decomposition rides along naturally.
+**3. Rung 3 — lists become `FlatList`s** with pull-to-refresh; commitment rows become a `CommitmentRow` component. **The design north star now exists as a real mockup: `mobile/DESIGN.md`** (distilled from Malachi's Claude Design project, link inside — option "2a + turn 3" is the end goal; the mockup is built from his own design.ts tokens). CommitmentRow's spec is DESIGN.md's "card anatomy" section: 3px status rail, title + muted meta, money right-aligned and status-coloured, completed rows dimmed/struck-through, failed rows red-tinted. Also adds `colors.border = rgba(255,255,255,.06)` to the palette. In progress at handoff: `components/CommitmentRow.tsx` created but unstarted; plan pitch owed (props + where the check-in handler lives).
 
 **4. Rung 4 — motion.** Pressed-state feedback comes free via AppButton; then Reanimated (bundled in Expo Go SDK 54) for layout transitions; the animated login background deliberately last.
 
