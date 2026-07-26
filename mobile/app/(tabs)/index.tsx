@@ -18,7 +18,7 @@ import { useCallback } from 'react';
 
 import { API_URL } from '@/constants/api';
 import {AppButton} from '@/components/app-button';
-
+import { CommitmentRow } from '@/components/CommitmentRow';
 
 
 export default function HomeScreen() {
@@ -216,10 +216,7 @@ export default function HomeScreen() {
             <ThemedText type = "subtitle"> Your Commitments</ThemedText>
 
             {commitments.map((c)=>(
-              <ThemedView key={c.id} style = {styles.row}>
-                <ThemedText>£{(c.stake_pence/100).toFixed(2)} | {c.status} due {c.deadline}</ThemedText>
-                <AppButton title = "Check in" onPress={() => handleCheckin(c.id)}/>
-              </ThemedView>
+              <CommitmentRow key = {c.id} commitment={c} onCheckin={handleCheckin}/>
             ))}
             
 
