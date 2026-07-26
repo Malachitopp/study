@@ -49,5 +49,5 @@ const styles = StyleSheet.create({
     selected: {
     backgroundColor: colors.success,
     },
-
+    
 });

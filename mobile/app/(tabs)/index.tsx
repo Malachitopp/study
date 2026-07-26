@@ -151,24 +151,6 @@ export default function HomeScreen() {
     };
 
 
-  const[moduleName, setmoduleName] = useState('');
-  const[moduleTerm, setmoduleTerm] = useState('') 
-
-  const handleCreateModule = async () => {
-    const response = await fetch(`${API_URL}/modules/`, {
-      method:'POST',
-      headers: { 'Content-Type': 'application/json', Authorization:'Bearer ' + token},
-      body: JSON.stringify({name : moduleName, term: moduleTerm}),
-    });
-            if (response.status === 401) {
-            await SecureStore.deleteItemAsync('token');
-            setToken(null);
-            router.replace('/');
-            return;}
-    const data = await response.json() 
-    if (!response.ok) { console.log('create module failed', response.status, data); return; }
-    loadModules();   
-  }
   
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync('token')
@@ -226,23 +208,7 @@ export default function HomeScreen() {
 
             <ThemedView style ={styles.section}>
               <AppButton title = "log out" onPress={handleLogout}/>
-              <ThemedText type="subtitle">New Module</ThemedText>
-              <TextInput
-                style = {styles.input}
-                value={moduleName}
-                onChangeText={setmoduleName}
-                placeholderTextColor='#888'
-                placeholder='Module name'
-                
-              />
-              <TextInput
-              style = {styles.input}
-              value = {moduleTerm}
-              onChangeText={setmoduleTerm}
-              placeholder='Module Term'
-              placeholderTextColor='#888'
-              />
-              <AppButton title='Add Module' onPress={handleCreateModule}/>
+              <AppButton title="Create New Module" onPress={() => router.push('/new-module')}/>
               
             </ThemedView>
            
