@@ -74,7 +74,7 @@ export default function NewModule() {
 const styles = StyleSheet.create({
   input: {
     borderWidth: 1 ,
-    borderColor: '#ccc',
+
     borderRadius: 8,
     padding: 12,
     marginBottom:8,
