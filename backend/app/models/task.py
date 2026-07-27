@@ -18,6 +18,7 @@ class Task(Base):
     kind = Column(SAEnum(TaskKind), nullable = False)
     due_at = Column(DateTime, nullable = False)
     recurrence = Column(String, nullable=True)
+    
 
     module = relationship("Module", back_populates="tasks")
 

@@ -15,6 +15,7 @@ class CommitmentOut(BaseModel):
     deadline: datetime
     verification_type: VerificationType
     status: CommitmentStatus
+    task_title: str 
 
     class Config:
         from_attributes = True 

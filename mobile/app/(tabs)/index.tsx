@@ -57,7 +57,7 @@ export default function HomeScreen() {
 
 
   const[commitments, setCommitments] = useState<{id:number; stake_pence: number;
-    deadline: string; status: string;
+    deadline: string; status: string; task_title: string;
   }[]>([]);
 
   const loadCommitments = async() => {

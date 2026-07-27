@@ -25,7 +25,7 @@ def create_commitment(task_id: int, commitment_in: CommitmentCreate, db:Session=
                       Depends(get_db), current_user: 
                       User = Depends(get_current_user)):
     task = get_owned_tasks(db, task_id, current_user)
-    commitment = Commitment(task_id= task.id, **commitment_in.model_dump())
+    commitment = Commitment(task_id= task.id,  **commitment_in.model_dump())
     db.add(commitment)
     db.commit()
     db.refresh(commitment)
@@ -33,7 +33,7 @@ def create_commitment(task_id: int, commitment_in: CommitmentCreate, db:Session=
     return commitment
 
 @router.get("/", response_model = List[CommitmentOut])
-def list_commitments(task_id: int, db:Session = Depends(get_db),
+def list_commitments(task_id: int,  db:Session = Depends(get_db),
                      current_user:User = Depends(get_current_user)):
     task = get_owned_tasks(db, task_id, current_user)
     return db.query(Commitment).filter(Commitment.task_id == task.id ).all() 

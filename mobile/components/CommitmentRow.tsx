@@ -6,7 +6,7 @@ import { AppButton } from "./app-button";
 
 
 type CommitmentRowProps = {
-    commitment: {id:number; stake_pence: number; deadline:string; status: string};
+    commitment: {id:number; stake_pence: number; deadline:string; status: string, task_title: string};
     onCheckin: (id: number) => void; 
 };
 
@@ -27,13 +27,19 @@ export function CommitmentRow({commitment, onCheckin}: CommitmentRowProps) {
             <View style={styles.middle}>
                 <Text
                 style = {styles.title}>
-                    £{Math.round(commitment.stake_pence/100)}
+                    {commitment.task_title}
+                    
                 </Text>
                 <Text 
                 style = {styles.meta}>
                     {commitment.status} | due {commitment.deadline}
                 </Text>
+                
             </View>
+            <Text style = {styles.money}>
+
+                        £{(commitment.stake_pence/100).toFixed(2)}
+                    </Text>
             {commitment.status === 'active' && (
                 <AppButton title="Check in" onPress={()=> onCheckin(commitment.id)}/>
             )}
@@ -84,6 +90,7 @@ const styles = StyleSheet.create(
         money: {
             fontSize: 13,
             fontWeight: '600',
+            color: colors.text
         },
         middle: {
             flex: 1 
