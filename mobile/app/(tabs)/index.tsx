@@ -10,7 +10,7 @@ import { spacing } from '@/constants/design';
 import {AppButton} from '@/components/app-button';
 import { CommitmentRow } from '@/components/CommitmentRow';
 import { useAuthToken } from '@/hooks/use-auth-token';
-
+import { FlatList } from 'react-native';
 
 
 
@@ -88,37 +88,42 @@ export default function HomeScreen() {
     }, [token])
     );
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadCommitments();
+    setRefreshing(false);
+    
+      
+    }
+  
+
+  
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-
-          <ThemedView style = {styles.section}>
-            <ThemedText type = "subtitle"> Your Commitments</ThemedText>
-
-            {commitments.map((c)=>(
-              <CommitmentRow key = {c.id} commitment={c} onCheckin={handleCheckin}/>
-            ))}
-            
-
-          </ThemedView>
-
-          <ThemedView>
-            <AppButton title={running ? 'Pause' : 'Start'} onPress={
-              () => setRunning(!running)} />
+    <FlatList
+      data = {commitments}
+      renderItem = { ({item}) => (
+        <CommitmentRow commitment={item} onCheckin={handleCheckin}/>
+      )}
+      keyExtractor={item => (item.id).toString()}
+      ListHeaderComponent={<ThemedText type = "subtitle"> Your Commitments</ThemedText>}
+      ListFooterComponent={
+        <ThemedView>
+            <AppButton title={running ? 'Pause' : 'Start'} onPress={() => setRunning(!running)} />
             <ThemedText>{seconds}s</ThemedText>
+        </ThemedView>}
+      refreshing = {refreshing}
+      onRefresh={handleRefresh}
+      />
 
-          </ThemedView>
 
+
+
+      
           
           
        
-    </ParallaxScrollView>
 
   );
 }
