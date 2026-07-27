@@ -2,13 +2,10 @@
 import { ThemedText} from "@/components/themed-text";
 import { TextInput } from 'react-native'
 import { ThemedView } from '@/components/themed-view';
-import { useState, useEffect, useCallback } from 'react';
-import * as SecureStore from 'expo-secure-store'
+import { useState} from 'react';
 import { API_URL } from '@/constants/api';
 import { StyleSheet } from 'react-native';
-
 import { useRouter } from 'expo-router'
-
 import { AppButton } from "@/components/app-button";
 import { useAuthToken } from '@/hooks/use-auth-token';
 

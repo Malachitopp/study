@@ -2,15 +2,13 @@ import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ThemedText} from "@/components/themed-text";
 import { TextInput } from 'react-native'
 import { ThemedView } from '@/components/themed-view';
-import { useState, useEffect, useCallback } from 'react';
-import * as SecureStore from 'expo-secure-store'
+import { useState, useCallback } from 'react';
 import { API_URL } from '@/constants/api';
 import { Image } from 'expo-image';
 import { StyleSheet } from 'react-native';
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router'
-
 import { AppButton } from "@/components/app-button";
 import { useAuthToken } from '@/hooks/use-auth-token';
 
@@ -18,7 +16,6 @@ import { useAuthToken } from '@/hooks/use-auth-token';
 
 
 export default function ModuleScreen() {
-    const router = useRouter() 
     const{id} = useLocalSearchParams();
     const {token, logout} = useAuthToken() 
 
