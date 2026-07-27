@@ -10,25 +10,17 @@ import { StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router'
 
 import { AppButton } from "@/components/app-button";
-
+import { useAuthToken } from '@/hooks/use-auth-token';
 
 export default function NewModule() {
     const router = useRouter() 
-    
-    
-    
-    const [token, setToken] = useState<string| null>(null);
-    
-    useEffect(() => {
-        const restoreToken = async () => {
-            const saved = await SecureStore.getItemAsync('token');
-            if (saved) setToken(saved);
-        };
-        restoreToken();
-    },[]);
+    const {token, logout} = useAuthToken() 
+
 
     const[moduleName, setmoduleName] = useState('');
     const[moduleTerm, setmoduleTerm] = useState('') 
+
+
     const handleCreateModule = async () => {
         if (!moduleName || !moduleTerm) {
           console.log("Need module name or module term");
@@ -40,9 +32,7 @@ export default function NewModule() {
           body: JSON.stringify({name : moduleName, term: moduleTerm}),
         });
                 if (response.status === 401) {
-                await SecureStore.deleteItemAsync('token');
-                setToken(null);
-                router.replace('/');
+                logout();
                 return;}
         const data = await response.json() 
         if (!response.ok) { console.log('create module failed', response.status, data); return; }

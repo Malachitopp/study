@@ -12,25 +12,17 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router'
 
 import { AppButton } from "@/components/app-button";
-
+import { useAuthToken } from '@/hooks/use-auth-token';
 
 
 
 
 export default function ModuleScreen() {
     const router = useRouter() 
-
     const{id} = useLocalSearchParams();
+    const {token, logout} = useAuthToken() 
 
-    const [token, setToken] = useState<string| null>(null);
 
-    useEffect(() => {
-        const restoreToken = async () => {
-            const saved = await SecureStore.getItemAsync('token');
-            if (saved) setToken(saved);
-        };
-        restoreToken();
-    },[]);
 
     const [task, setTask] = useState<{id:number; title:string}[]>([]);
     const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
@@ -40,9 +32,7 @@ export default function ModuleScreen() {
         headers: {Authorization: 'Bearer ' + token }
         });
         if (response.status === 401) {
-        await SecureStore.deleteItemAsync('token');
-        setToken(null);
-        router.replace('/');
+        logout();
         return;
 }
         const data = await response.json();
@@ -76,9 +66,7 @@ export default function ModuleScreen() {
                  due_at: taskDueDate.toISOString()})
         });
         if (response.status === 401) {
-        await SecureStore.deleteItemAsync('token');
-        setToken(null);
-        router.replace('/');
+        logout();
         return;}
         const data = await response.json() 
         if (!response.ok) {console.log('failed', response.status, data); return;}
@@ -112,9 +100,7 @@ export default function ModuleScreen() {
             }
         );
         if (response.status === 401) {
-        await SecureStore.deleteItemAsync('token');
-        setToken(null);
-        router.replace('/');
+        logout();
         return;}
         const data = await response.json();
         if (!response.ok) {console.log('create failed', response.status, data); return;}
