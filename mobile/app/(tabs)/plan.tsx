@@ -6,6 +6,14 @@ import { AppButton } from "@/components/app-button";
 import { spacing, colors } from "@/constants/design";
 import { useAuthToken } from "@/hooks/use-auth-token";
 
+
+
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+
+
+
+
 export default function Plan() {
     const router = useRouter() 
     const {token, logout}  = useAuthToken()
@@ -32,6 +40,7 @@ export default function Plan() {
   );
   
     return (
+      <SafeAreaView style={styles.page} edges={['top']}>
         <View style={styles.page}> 
             <View style={styles.section}>
               <Text style= {styles.sectionLabel}>Your Modules</Text>
@@ -46,14 +55,15 @@ export default function Plan() {
               
             </View>
         </View> 
-
+      </SafeAreaView>
     )
 }
 const styles = StyleSheet.create({
   page: {
       flex: 1, 
       backgroundColor: colors.bg,
-      padding: spacing.md 
+      padding: spacing.md,
+      gap: spacing.sm 
     },
   section: {
     gap: spacing.sm,

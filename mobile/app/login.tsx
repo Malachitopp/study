@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store'
 import { TextInput, StyleSheet, View, Text } from "react-native";
 import { API_URL } from "@/constants/api";
 import { AppButton } from "@/components/app-button";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, radius, spacing } from "@/constants/design";
 
 export default function Login() {
@@ -33,6 +33,7 @@ export default function Login() {
     
 
     return (
+      <SafeAreaView style={styles.page} edges={['top']}>
         <View style={styles.page}>
             <View style={styles.header}>
                 <Text style={styles.title}>Study Stakes</Text>
@@ -64,6 +65,7 @@ export default function Login() {
                 <AppButton title={'Log in'} onPress={handleLogin} />
             </View>
         </View>
+      </SafeAreaView>
     );
 }
 

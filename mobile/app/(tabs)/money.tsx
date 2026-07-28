@@ -5,7 +5,7 @@ import {Text, View} from "react-native"
 import { API_URL } from "@/constants/api";
 import { spacing, colors, radius } from "@/constants/design";
 import { useAuthToken } from "@/hooks/use-auth-token";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 
@@ -40,6 +40,7 @@ export default function Money() {
     
 
     return (
+      <SafeAreaView style={styles.page} edges={['top']}>
         <View style = { styles.page }>
         <View style = {styles.section}>
                     <Text style = {styles.sectionLabel}>Ledger</Text>
@@ -48,7 +49,9 @@ export default function Money() {
                     ))}
                   </View>
         </View> 
+       </SafeAreaView>
     )
+    
 }
 
 const styles = StyleSheet.create({
