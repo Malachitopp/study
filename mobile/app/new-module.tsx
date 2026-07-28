@@ -1,12 +1,9 @@
-
-import { ThemedText} from "@/components/themed-text";
-import { TextInput } from 'react-native'
-import { ThemedView } from '@/components/themed-view';
+import { TextInput, StyleSheet, View, Text } from 'react-native'
 import { useState} from 'react';
 import { API_URL } from '@/constants/api';
-import { StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router'
 import { AppButton } from "@/components/app-button";
+import { colors, radius, spacing } from '@/constants/design';
 import { useAuthToken } from '@/hooks/use-auth-token';
 
 export default function NewModule() {
@@ -38,37 +35,48 @@ export default function NewModule() {
       }
 
     return (
-        <ThemedView style = {styles.section}>
-            <ThemedText type="subtitle"> New Module </ThemedText>
-            <TextInput 
-                style = {styles.input}
-                value = {moduleName} 
-                onChangeText ={setmoduleName} 
-                placeholder="Module Name"
+        <View style={styles.page}>
+            <Text style={styles.title}>New Module</Text>
+            <TextInput
+                style={styles.input}
+                value={moduleName}
+                onChangeText={setmoduleName}
+                placeholder="Module name"
+                placeholderTextColor={colors.textMuted}
             />
-            <TextInput 
-                style = {styles.input}
-                value = {moduleTerm}
-                onChangeText = {setmoduleTerm}
-                placeholder="Module Term"
+            <TextInput
+                style={styles.input}
+                value={moduleTerm}
+                onChangeText={setmoduleTerm}
+                placeholder="Term"
+                placeholderTextColor={colors.textMuted}
             />
             <AppButton title="Create New Module" onPress={handleCreateModule}/>
-
-        </ThemedView>
+        </View>
     )
 }
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 21,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    marginBottom: spacing.xs,
+  },
   input: {
-    borderWidth: 1 ,
-
-    borderRadius: 8,
-    padding: 12,
-    marginBottom:8,
+    borderWidth: 1,
+    borderColor: colors.borders,
+    borderRadius: radius.button,
+    padding: spacing.md,
+    backgroundColor: colors.card,
+    color: colors.text,
+    fontSize: 15,
   },
-
-  section: {
-    gap: 8,
-  },
-
 });

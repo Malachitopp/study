@@ -1,16 +1,11 @@
-import { Image } from 'expo-image';
-import { StyleSheet } from 'react-native';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { StyleSheet, View, Text, FlatList } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router'
 import { API_URL } from '@/constants/api';
-import { spacing } from '@/constants/design';
+import { spacing, colors } from '@/constants/design';
 import {AppButton} from '@/components/app-button';
 import { CommitmentRow } from '@/components/CommitmentRow';
 import { useAuthToken } from '@/hooks/use-auth-token';
-import { FlatList } from 'react-native';
 
 
 
@@ -107,14 +102,16 @@ export default function HomeScreen() {
         <CommitmentRow commitment={item} onCheckin={handleCheckin}/>
       )}
       keyExtractor={item => (item.id).toString()}
-      ListHeaderComponent={<ThemedText type = "subtitle"> Your Commitments</ThemedText>}
+      ListHeaderComponent={<Text style={styles.sectionLabel}>Your Commitments</Text>}
       ListFooterComponent={
-        <ThemedView>
+        <View style={styles.footer}>
             <AppButton title={running ? 'Pause' : 'Start'} onPress={() => setRunning(!running)} />
-            <ThemedText>{seconds}s</ThemedText>
-        </ThemedView>}
+            <Text style={styles.timer}>{seconds}s</Text>
+        </View>}
       refreshing = {refreshing}
       onRefresh={handleRefresh}
+      style={styles.page}
+      contentContainerStyle={styles.content}
       />
 
 
@@ -129,14 +126,30 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  section: {
+  page: {
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
+  content: {
+    padding: spacing.md,
     gap: spacing.sm,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  sectionLabel: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginBottom: spacing.xs,
+  },
+  footer: {
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  timer: {
+    color: colors.text,
+    fontSize: 32,
+    fontWeight: '300',
+    textAlign: 'center',
   },
 });

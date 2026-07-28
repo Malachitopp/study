@@ -1,15 +1,10 @@
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
-import { ThemedText} from "@/components/themed-text";
-import { TextInput } from 'react-native'
-import { ThemedView } from '@/components/themed-view';
+import { TextInput, StyleSheet, View, Text, ScrollView } from 'react-native'
 import { useState, useCallback } from 'react';
 import { API_URL } from '@/constants/api';
-import { Image } from 'expo-image';
-import { StyleSheet } from 'react-native';
-import ParallaxScrollView from "@/components/parallax-scroll-view";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useRouter } from 'expo-router'
 import { AppButton } from "@/components/app-button";
+import { colors, radius, spacing } from '@/constants/design';
 import { useAuthToken } from '@/hooks/use-auth-token';
 
 
@@ -111,112 +106,122 @@ export default function ModuleScreen() {
 
 
     return (
-    <ParallaxScrollView
-        headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-        headerImage={
-            <Image
-              source={require('@/assets/images/partial-react-logo.png')}
-              style={styles.reactLogo}
+    <ScrollView style={styles.page} contentContainerStyle={styles.content}>
+        <Text style={styles.title}>Module {id}</Text>
+
+        <View style={styles.section}>
+            <Text style={styles.sectionLabel}>New Task</Text>
+            <TextInput
+                style = {styles.input}
+                value = { taskTitle}
+                onChangeText={setTaskTitle}
+                placeholder="Title"
+                placeholderTextColor={colors.textMuted}
             />
-          }>
-     <ThemedText>module {id}</ThemedText>
-     <ThemedView style={styles.page}>
-        <TextInput
-            style = {styles.input}
-            value = { taskTitle}
-            onChangeText={setTaskTitle}
-            placeholder="Title"
-            placeholderTextColor='#f8f8f8'
-        />
-        <DateTimePicker
-            value = {taskDueDate}
-            mode = "datetime"
-            onChange={(event, selectedDate) => {
-                if (selectedDate) setTaskDueDate(selectedDate)
-            }}
-            />
-        {TASK_KINDS.map((k) => (
-            <AppButton
-            key={k}
-            title={k}
-            selected = {selectedKind === k }
-            onPress={() => setSelectedKind(k)}
-            />
-        ))}
-        <AppButton title = {"Create Task"} onPress={handleCreateTask}/>
-     </ThemedView> 
-        <ThemedView>
+            <DateTimePicker
+                value = {taskDueDate}
+                mode = "datetime"
+                themeVariant="dark"
+                onChange={(event, selectedDate) => {
+                    if (selectedDate) setTaskDueDate(selectedDate)
+                }}
+                />
+            {TASK_KINDS.map((k) => (
+                <AppButton
+                key={k}
+                title={k}
+                selected = {selectedKind === k }
+                onPress={() => setSelectedKind(k)}
+                />
+            ))}
+            <AppButton title = {"Create Task"} onPress={handleCreateTask}/>
+        </View>
+
+        <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Tasks</Text>
             {task.map((c) => (
-            <ThemedView key = {c.id} style = {styles.row}>
-                <ThemedText key = {c.id} > {c.title}</ThemedText>
-                <AppButton 
-                key = {c.id}
-                title = {'Select ID'}
+            <View key = {c.id} style = {styles.row}>
+                <Text style={styles.taskTitle}>{c.title}</Text>
+                <AppButton
+                title = {'Select'}
                 selected = {selectedTaskId === c.id }
                 onPress={() => setSelectedTaskId(c.id)}/>
-            </ThemedView>
+            </View>
         ))}
+        </View>
 
-        </ThemedView>
-        <ThemedView style = {styles.section}>
-            <ThemedText type='subtitle'>New Commitment</ThemedText>
+        <View style = {styles.section}>
+            <Text style={styles.sectionLabel}>New Commitment</Text>
             <TextInput
             style = {styles.input}
             keyboardType='numeric'
             value={stakePounds}
             onChangeText={setStakePounds}
             placeholder='£ Stake'
+            placeholderTextColor={colors.textMuted}
             />
             <DateTimePicker
                value ={deadlineDate}
                mode = 'datetime'
+               themeVariant="dark"
                onChange={(event, selectedDate) => {
                 if (selectedDate) setDeadlineDate(selectedDate)
                }}/>
-            <ThemedText> {deadlineDate.toISOString()}</ThemedText>
-            
-
             <AppButton title="Create commitment" onPress={handleCreateCommitment} />
-          </ThemedView>
-        
-
-    </ParallaxScrollView>
-    
-
-    
-
-
-
-
+          </View>
+    </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-  input: {
-    borderWidth: 1 ,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom:8,
-  },
   page: {
-    padding: 16,
-    gap:16
+    flex: 1,
+    backgroundColor: colors.bg,
+  },
+  content: {
+    padding: spacing.md,
+    gap: spacing.lg,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  sectionLabel: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.borders,
+    borderRadius: radius.button,
+    padding: spacing.md,
+    backgroundColor: colors.card,
+    color: colors.text,
+    fontSize: 15,
   },
   section: {
-    gap: 8,
+    gap: spacing.sm,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  taskTitle: {
+    color: colors.text,
+    fontSize: 14.5,
+    fontWeight: '600',
+    flex: 1,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.borders,
+    borderRadius: radius.card,
+    padding: spacing.md,
   },
-
 });

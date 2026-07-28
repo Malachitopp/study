@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
-import { ThemedView } from "@/components/themed-view";
+import { View } from "react-native";
 import { AppButton } from "@/components/app-button";
-import { spacing } from "@/constants/design";
+import { spacing, colors, radius } from "@/constants/design";
 import { useAuthToken } from "@/hooks/use-auth-token";
 
 
@@ -9,17 +9,18 @@ export default function Me() {
     const { logout } = useAuthToken()
 
     return ( 
-        <ThemedView style = {styles.page}>
+        <View style = {styles.page}>
             <AppButton title = "log out" onPress={logout}/>
-        </ThemedView>
+        </View>
         
     )
 }
 
 const styles = StyleSheet.create({
   page: {
-    padding: spacing.md,
-    gap: spacing.md,
+    flex: 1, 
+    backgroundColor: colors.bg,
+    padding: spacing.md 
   },
 });
 

@@ -1,13 +1,10 @@
 import { useState, useCallback } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
-import { StyleSheet } from "react-native";
-import { ThemedView } from "@/components/themed-view";
+import { StyleSheet, View, Text } from "react-native";
 import { API_URL } from "@/constants/api";
 import { AppButton } from "@/components/app-button";
-import { ThemedText } from '@/components/themed-text';
-import { spacing } from "@/constants/design";
+import { spacing, colors } from "@/constants/design";
 import { useAuthToken } from "@/hooks/use-auth-token";
-
 
 export default function Plan() {
     const router = useRouter() 
@@ -35,29 +32,37 @@ export default function Plan() {
   );
   
     return (
-        <ThemedView style={styles.page}> 
-            <ThemedView style={styles.section}>
-              <ThemedText type="subtitle">Your Modules</ThemedText>
+        <View style={styles.page}> 
+            <View style={styles.section}>
+              <Text style= {styles.sectionLabel}>Your Modules</Text>
               {modules.map((m) => (
                 <AppButton key={m.id} title={m.name} onPress={() => router.push(`/module/${m.id}`)} />
               ))}
-            </ThemedView>
+            </View>
 
-            <ThemedView style ={styles.section}>
+            <View style ={styles.section}>
               
               <AppButton title="Add Module" onPress={() => router.push('/new-module')}/>
               
-            </ThemedView>
-        </ThemedView> 
+            </View>
+        </View> 
 
     )
 }
 const styles = StyleSheet.create({
   page: {
-    padding: spacing.md,
-    gap: spacing.md,
-  },
+      flex: 1, 
+      backgroundColor: colors.bg,
+      padding: spacing.md 
+    },
   section: {
     gap: spacing.sm,
   },
+    sectionLabel: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+},
 });

@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store'
-import { TextInput } from "react-native";
-import { StyleSheet } from "react-native";
-import { ThemedView } from "@/components/themed-view";
+import { TextInput, StyleSheet, View, Text } from "react-native";
 import { API_URL } from "@/constants/api";
 import { AppButton } from "@/components/app-button";
 
@@ -35,45 +33,72 @@ export default function Login() {
     
 
     return (
-                <ThemedView style ={styles.page}>
-                    <ThemedView>
-                    <TextInput
-                      style = {styles.input}
-                      value = {email}
-                      onChangeText = {setEmail}
-                      
-                      placeholder='Email'
-                      placeholderTextColor='colors.text'/>
-                      
-        
-                    <TextInput
-                      style = {styles.input}
-                      value = {password}
-                      onChangeText = {setPassword}
-                      placeholder='Password'
-                      placeholderTextColor='colors.text'/>
-                      
-                      <AppButton title = {'Log in'} onPress={handleLogin}/>
-                      
-                    </ThemedView>
-                    
-        
-                  
-                </ThemedView>
+        <View style={styles.page}>
+            <View style={styles.header}>
+                <Text style={styles.title}>Study Stakes</Text>
+                <Text style={styles.tagline}>
+                    The plan is the point. The money is what makes you keep it.
+                </Text>
+            </View>
+
+            <View style={styles.form}>
+                <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder='Email'
+                    placeholderTextColor={colors.textMuted}
+                    autoCapitalize='none'
+                    keyboardType='email-address'
+                />
+
+                <TextInput
+                    style={styles.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder='Password'
+                    placeholderTextColor={colors.textMuted}
+                    secureTextEntry
+                />
+
+                <AppButton title={'Log in'} onPress={handleLogin} />
+            </View>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-  input: {
-    borderWidth: 1 ,
-    borderColor: colors.borders,
-    borderRadius: radius.pill,
-    padding: spacing.sm,
-    marginBottom:8,
-    color: colors.text
-  },
   page: {
-    padding: 16,
-    gap:16
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: colors.bg,
+    padding: spacing.lg,
+    gap: spacing.xl,
+  },
+  header: {
+    gap: spacing.sm,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 32,
+    fontWeight: '700',
+    letterSpacing: -0.6,
+  },
+  tagline: {
+    color: colors.textMuted,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  form: {
+    gap: spacing.sm,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.borders,
+    borderRadius: radius.button,
+    padding: spacing.md,
+    backgroundColor: colors.card,
+    color: colors.text,
+    fontSize: 15,
   },
 });
