@@ -20,7 +20,7 @@ export default function HomeScreen() {
   const {token, logout} = useAuthToken() 
 
   const[commitments, setCommitments] = useState<{id:number; stake_pence: number;
-    deadline: string; status: string; task_title: string;
+    deadline: string; status: string; task_title: string; required_seconds:number
   }[]>([]);
 
   const loadCommitments = async() => {
