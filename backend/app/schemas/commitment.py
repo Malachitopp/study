@@ -7,6 +7,7 @@ class CommitmentCreate(BaseModel):
     stake_pence: int = Field(gt = 0)  
     deadline: datetime 
     verification_type: VerificationType
+    required_seconds: int = Field(gt = 0 )
 
 class CommitmentOut(BaseModel):
     id: int 
@@ -16,6 +17,7 @@ class CommitmentOut(BaseModel):
     verification_type: VerificationType
     status: CommitmentStatus
     task_title: str 
+    required_seconds: int 
 
     class Config:
         from_attributes = True 

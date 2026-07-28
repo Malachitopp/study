@@ -24,10 +24,10 @@ class Commitment(Base):
     deadline = Column(DateTime(timezone=True), nullable = False)
     verification_type = Column(SAEnum(VerificationType),nullable = False )
     status = Column(SAEnum(CommitmentStatus), nullable = False, default = CommitmentStatus.active)
+    required_seconds = Column(Integer, nullable=False) 
     @property
     def task_title(self) -> str:
         return self.task.title
-
 
     task = relationship("Task", back_populates="commitments")
     

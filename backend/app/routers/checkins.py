@@ -44,9 +44,9 @@ def create_checkin(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Deadline has passed"
         )
-    REQUIRED_FOCUS_SECONDS = 1500
-    #move into commitments
-    if checkin_in.focus_seconds < REQUIRED_FOCUS_SECONDS:
+   
+  
+    if checkin_in.focus_seconds < commitment.required_seconds:
         raise HTTPException(
 
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -75,6 +75,7 @@ export default function ModuleScreen() {
  
     const[stakePounds, setStakePounds] = useState('');
     const [deadlineDate, setDeadlineDate] = useState(new Date())
+    const [requiredSeconds, setRequiredSeconds] = useState('');
 
     const handleCreateCommitment = async () =>{
         if (!selectedTaskId) {console.log("no id selected"); return;}
@@ -87,7 +88,8 @@ export default function ModuleScreen() {
                  body: JSON.stringify({
                     stake_pence: Math.round(Number(stakePounds) * 100 ), 
                     deadline: deadlineDate.toISOString(),
-                    verification_type:'timer'
+                    verification_type:'timer',
+                    required_seconds:(Number(requiredSeconds) *60) 
                  }),
             }
         );
@@ -97,6 +99,7 @@ export default function ModuleScreen() {
         const data = await response.json();
         if (!response.ok) {console.log('create failed', response.status, data); return;}
         setStakePounds('');
+        setRequiredSeconds('');
     }
 
 
@@ -118,6 +121,7 @@ export default function ModuleScreen() {
                 placeholder="Title"
                 placeholderTextColor={colors.textMuted}
             />
+
             <DateTimePicker
                 value = {taskDueDate}
                 mode = "datetime"
@@ -160,6 +164,13 @@ export default function ModuleScreen() {
             placeholder='£ Stake'
             placeholderTextColor={colors.textMuted}
             />
+            <TextInput 
+            style = {styles.input}
+            keyboardType='numeric'
+            value = {requiredSeconds}
+            onChangeText={setRequiredSeconds}
+            placeholder="Required study time (Minutes)"
+            placeholderTextColor={colors.textMuted}/>
             <DateTimePicker
                value ={deadlineDate}
                mode = 'datetime'
