@@ -6,8 +6,8 @@ import { spacing, colors } from '@/constants/design';
 import {AppButton} from '@/components/app-button';
 import { CommitmentRow } from '@/components/CommitmentRow';
 import { useAuthToken } from '@/hooks/use-auth-token';
-
-
+import { Commitment } from '@/constants/types';
+import { Tile } from '@/components/tile';
 
 
 
@@ -19,9 +19,7 @@ import { useAuthToken } from '@/hooks/use-auth-token';
 export default function HomeScreen() {
   const {token, logout} = useAuthToken() 
 
-  const[commitments, setCommitments] = useState<{id:number; stake_pence: number;
-    deadline: string; status: string; task_title: string; required_seconds:number
-  }[]>([]);
+  const[commitments, setCommitments] = useState<Commitment[]>([]);
 
   const loadCommitments = async() => {
         const response = await fetch(`${API_URL}/commitments/`, {
@@ -51,6 +49,15 @@ export default function HomeScreen() {
     }, 1000);
     return () => clearInterval(id);
   }, [running]);
+
+
+    useEffect(() => {
+    const id = setInterval( () => setNow(Date.now()),1000);
+    return () => clearInterval(id);
+  }, []);
+
+
+
 
 
   const handleCheckin = async(id: number) => {
@@ -92,20 +99,96 @@ export default function HomeScreen() {
     
       
     }
-  
 
+  const today = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    });
   
+  const active = commitments.filter(t => t.status === 'active');
+  const atRisk = active.reduce((sum,c) => sum + c.stake_pence, 0) / 100;
+  
+  const numOfActiveCommitments = active.length
+  
+  const completed = commitments.filter(t => t.status === 'completed');
+  const saved = completed.reduce((sum, c) => sum + c.stake_pence, 0)/100;
+  const numOfSavedCommitments = completed.length;
+
+
+
+
+  const next = [...active].sort((a,b) => new Date(a.deadline).getTime()
+    - new Date(b.deadline).getTime())[0];
+  
+  const [ now, setNow] = useState(Date.now());
+  
+  const msLeft = next ? new Date(next.deadline).getTime() - now:0;
+  const totalMinutes = Math.floor(msLeft/60000)
+  const hours = Math.floor(totalMinutes/60) 
+  const minutes = totalMinutes%60 
+
+
+
+
+
   return (
+
     <FlatList
       data = {commitments}
       renderItem = { ({item}) => (
         <CommitmentRow commitment={item} onCheckin={handleCheckin}/>
       )}
       keyExtractor={item => (item.id).toString()}
-      ListHeaderComponent={<Text style={styles.sectionLabel}>Your Commitments</Text>}
+      ListHeaderComponent={
+        <View>
+          <Text style ={styles.sectionLabel}>{today}</Text>
+          {next && (
+            <View style = {styles.card}>
+              <View style = {styles.topRow}>
+                <Text style = {styles.eyebrow}>
+                  Next Deadline 
+                </Text>
+                <Text style = {styles.kind}>
+                   {next.task.kind}
+                </Text>
+              </View>
+              <View>
+                <Text style = {styles.title}>
+                  {next.task.title}
+                </Text>
+                <Text style = {styles.module}>
+                  {next.module_title}
+                </Text>
+              </View>
+              <View style = {styles.figures}>
+                <View>
+                  <Text style = {styles.countdown}>
+                     {hours}<Text style ={styles.unit}>h</Text> { minutes }<Text style= {styles.unit}>m</Text>
+                  </Text>
+                </View> 
+                <View style = {styles.right}>
+                  <Text style = {styles.stake}> £{Math.round(next.stake_pence/100).toFixed(2)}</Text>
+                  <Text style = {styles.caption}>at stake</Text>
+                </View> 
+              </View>
+
+            </View>
+           
+
+
+          )}
+          <View style = {styles.tileRow}>
+            <Tile value = {atRisk} information= {`at risk | ${numOfActiveCommitments} live`} tone = 'danger'/>
+            <Tile value = {saved} information = {`saved | ${numOfSavedCommitments} completed`} tone = {'success'}/>
+          </View>
+        </View>}
       ListFooterComponent={
         <View style={styles.footer}>
             <AppButton title={running ? 'Pause' : 'Start'} onPress={() => setRunning(!running)} />
+
+
+
             <Text style={styles.timer}>{seconds}s</Text>
         </View>}
       refreshing = {refreshing}
@@ -152,4 +235,89 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     textAlign: 'center',
   },
+  card: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.accentBorder,   // rgba(92,108,255,.35) — tinted, so it glows
+    borderRadius: 18,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+
+  // top row: "NEXT DEADLINE" ......... "Problem sheet"
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  eyebrow: {
+    color: colors.accent,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  kind: {
+    color: colors.textMuted,
+    fontSize: 11.5,
+    fontWeight: '500',
+  },
+
+  title: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 22,
+  },
+  module: {
+    color: colors.textMuted,
+    fontSize: 13.5,
+  },
+
+  // bottom row: countdown on the left, stake on the right
+  figures: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  countdown: {
+    color: colors.text,
+    fontSize: 40,
+    fontWeight: '700',
+    letterSpacing: -1.5,
+    fontVariant: ['tabular-nums'],
+  },
+  unit: {
+    fontSize: 22,
+    color: colors.textMuted,          // the "h" and "m" sit quieter than the numbers
+  },
+  stake: {
+    color: colors.danger,
+    fontSize: 22,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  caption: {
+    color: colors.textMuted,
+    fontSize: 12,
+    marginTop: spacing.xs,
+  },
+  right: { alignItems: 'flex-end' },
+
+  // progress bar
+  track: {
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',               // clips the fill to the rounded corners
+  },
+  fill: {
+    height: '100%',
+    backgroundColor: colors.accent,
+    // width is set inline as a percentage — it's data, not styling
+  },
+  tileRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  }
 });

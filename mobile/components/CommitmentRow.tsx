@@ -3,12 +3,10 @@ import { colors, radius, spacing } from "@/constants/design";
 import { View, Text } from "react-native";
 import { StyleSheet } from "react-native";
 import { AppButton } from "./app-button";
-
+import { Commitment } from "@/constants/types";
 
 type CommitmentRowProps = {
-    commitment: {id:number; stake_pence: number; deadline:string; 
-        status: string; task_title: string; required_seconds:number};
-
+    commitment: Commitment;
     onCheckin: (id: number) => void; 
 };
 
@@ -29,7 +27,7 @@ export function CommitmentRow({commitment, onCheckin}: CommitmentRowProps) {
             <View style={styles.middle}>
                 <Text
                 style = {styles.title}>
-                    {commitment.task_title}
+                    {commitment.task.title}
                     
                 </Text>
                 <Text 

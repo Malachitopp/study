@@ -26,8 +26,9 @@ class Commitment(Base):
     status = Column(SAEnum(CommitmentStatus), nullable = False, default = CommitmentStatus.active)
     required_seconds = Column(Integer, nullable=False) 
     @property
-    def task_title(self) -> str:
-        return self.task.title
+    def module_title(self) -> str:
+        return self.task.module.name
+
 
     task = relationship("Task", back_populates="commitments")
     

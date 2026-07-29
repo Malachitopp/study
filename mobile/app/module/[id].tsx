@@ -26,7 +26,7 @@ export default function ModuleScreen() {
         if (response.status === 401) {
         logout();
         return;
-}
+    }
         const data = await response.json();
         if (!response.ok) {console.log('tasks fetch failed', response.status, data);
         return;
@@ -67,7 +67,7 @@ export default function ModuleScreen() {
         setSelectedKind(null);
 
     };
-    const TASK_KINDS = ['problem_sheet', 'revision', 'reading', 'coursework'];
+    const TASK_KINDS = ['problem sheet', 'revision', 'reading', 'coursework'];
    
 
     
