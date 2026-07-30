@@ -29,7 +29,7 @@ export function Tile (
                 ]
                 
             }>
-                £{Math.round(value).toFixed(2)}
+                £{value.toFixed(2)}
             </Text>
             <Text style = {
                 styles.label
