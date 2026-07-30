@@ -7,12 +7,11 @@ import { Commitment } from "@/constants/types";
 
 type CommitmentRowProps = {
     commitment: Commitment;
-    onCheckin: (id: number) => void; 
 };
 
 
 
-export function CommitmentRow({commitment, onCheckin}: CommitmentRowProps) {
+export function CommitmentRow({commitment, }: CommitmentRowProps) {
     
     return (
         <View style = {styles.card}>
@@ -43,9 +42,7 @@ export function CommitmentRow({commitment, onCheckin}: CommitmentRowProps) {
                 <Text style = {styles.meta}>{commitment.required_seconds }m</Text>
             </View>
 
-            {commitment.status === 'active' && (
-                <AppButton title="Check in" onPress={()=> onCheckin(commitment.id)}/>
-            )}
+
             
         </View>
         

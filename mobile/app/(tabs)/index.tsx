@@ -1,13 +1,26 @@
 import { StyleSheet, View, Text, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { API_URL } from '@/constants/api';
-import { spacing, colors } from '@/constants/design';
+import { spacing, colors, radius } from '@/constants/design';
 import {AppButton} from '@/components/app-button';
 import { CommitmentRow } from '@/components/CommitmentRow';
 import { useAuthToken } from '@/hooks/use-auth-token';
 import { Commitment } from '@/constants/types';
 import { Tile } from '@/components/tile';
+import FocusButton from '@/components/Focus';
+import { useRouter } from 'expo-router';
+
+
+const numbersToWords = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 
+  'Seven',
+  'Eight', 'Nine', 'Ten'
+]
+
+
+
+
 
 
 
@@ -18,6 +31,7 @@ import { Tile } from '@/components/tile';
 
 export default function HomeScreen() {
   const {token, logout} = useAuthToken() 
+  const router = useRouter();
 
   const[commitments, setCommitments] = useState<Commitment[]>([]);
 
@@ -57,33 +71,6 @@ export default function HomeScreen() {
   }, []);
 
 
-
-
-
-  const handleCheckin = async(id: number) => {
-    const response = await fetch(`${API_URL}/commitments/${id}/checkins/`, {
-      method:  'POST',
-      headers: {Authorization: 'Bearer ' + token,
-      'Content-Type': 'application/json',
-
-      },
-      body: JSON.stringify({focus_seconds:seconds}),
-
-
-    });
-            if (response.status === 401) {
-            logout();
-            return;}
-    const data = await response.json()
-    if (!response.ok) {console.log('checkin failed', response.status, data);
-      return;
-    };
-    setRunning(false);
-    setSeconds(0);
-    loadCommitments();
-
-  };
-
     useFocusEffect(
     useCallback(() => {
         if (token) {loadCommitments()};
@@ -114,8 +101,15 @@ export default function HomeScreen() {
   const completed = commitments.filter(t => t.status === 'completed');
   const saved = completed.reduce((sum, c) => sum + c.stake_pence, 0)/100;
   const numOfSavedCommitments = completed.length;
+  
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0,0,0,0);
+  const dueToday = active.filter(t=> new Date(t.deadline).getTime() < tomorrow.getTime() );
+    
 
 
+  const toWords = numbersToWords[dueToday.length] ?? dueToday.length;
 
 
   const next = [...active].sort((a,b) => new Date(a.deadline).getTime()
@@ -124,25 +118,32 @@ export default function HomeScreen() {
   const [ now, setNow] = useState(Date.now());
   
   const msLeft = next ? new Date(next.deadline).getTime() - now:0;
-  const totalMinutes = Math.floor(msLeft/60000)
-  const hours = Math.floor(totalMinutes/60) 
-  const minutes = totalMinutes%60 
+  const totalMinutes = Math.floor(msLeft/60000);
+  const hours = Math.floor(totalMinutes/60) ;
+  const minutes = totalMinutes%60 ;
 
+
+
+  
 
 
 
 
   return (
 
+    <SafeAreaView style={styles.page} edges={['top']}>
     <FlatList
-      data = {commitments}
-      renderItem = { ({item}) => (
-        <CommitmentRow commitment={item} onCheckin={handleCheckin}/>
-      )}
+      data = {dueToday}
+      renderItem={({item}) => <CommitmentRow commitment={item}/>}
       keyExtractor={item => (item.id).toString()}
       ListHeaderComponent={
-        <View>
-          <Text style ={styles.sectionLabel}>{today}</Text>
+        <View style={styles.header}>
+          <View style={styles.headingBlock}>
+            <Text style={styles.sectionLabel}>{today}</Text>
+            <Text style={styles.headline}>
+              {toWords} {dueToday.length === 1 ? 'thing' : 'things'} due before midnight.
+            </Text>
+          </View>
           {next && (
             <View style = {styles.card}>
               <View style = {styles.topRow}>
@@ -168,11 +169,10 @@ export default function HomeScreen() {
                   </Text>
                 </View> 
                 <View style = {styles.right}>
-                  <Text style = {styles.stake}> £{Math.round(next.stake_pence/100).toFixed(2)}</Text>
+                  <Text style = {styles.stake}>£{(next.stake_pence / 100).toFixed(2)}</Text>
                   <Text style = {styles.caption}>at stake</Text>
                 </View> 
               </View>
-
             </View>
            
 
@@ -185,17 +185,23 @@ export default function HomeScreen() {
         </View>}
       ListFooterComponent={
         <View style={styles.footer}>
-            <AppButton title={running ? 'Pause' : 'Start'} onPress={() => setRunning(!running)} />
-
-
-
             <Text style={styles.timer}>{seconds}s</Text>
         </View>}
+      ListEmptyComponent={
+        <View style = {styles.empty}>
+          <Text style = {styles.emptyText}>Nothing Due Today</Text>
+        </View>
+      }
       refreshing = {refreshing}
       onRefresh={handleRefresh}
       style={styles.page}
       contentContainerStyle={styles.content}
       />
+
+      <FocusButton title = {`Start Focus: £${atRisk} At Risk `}
+      onPress ={() => router.push(`/focus/${next.id}`)}
+      />
+    </SafeAreaView>
 
 
 
@@ -217,13 +223,28 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
   },
+  // the whole header block: date + headline, hero card, tiles.
+  // one gap here is what stops the tiles butting into the card.
+  header: {
+    gap: spacing.md,
+  },
+  // date and headline are a pair, so they sit tighter than the gap above
+  headingBlock: {
+    gap: spacing.xs,
+  },
   sectionLabel: {
     color: colors.textMuted,
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
-    marginBottom: spacing.xs,
+  },
+  headline: {
+    color: colors.text,
+    fontSize: 27,
+    fontWeight: '700',
+    lineHeight: 32,                   // above the font size, or two lines crush together
+    letterSpacing: -0.5,              // big type needs tightening, small type doesn't
   },
   footer: {
     gap: spacing.sm,
@@ -303,21 +324,20 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   right: { alignItems: 'flex-end' },
-
-  // progress bar
-  track: {
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    overflow: 'hidden',               // clips the fill to the rounded corners
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: colors.accent,
-    // width is set inline as a percentage — it's data, not styling
-  },
   tileRow: {
     flexDirection: 'row',
     gap: spacing.sm,
-  }
+  },
+    empty: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.borders,
+    borderRadius: radius.card,
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: colors.textMuted,
+    fontSize: 13.5,
+  },
 });
