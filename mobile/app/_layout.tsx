@@ -33,6 +33,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="new-module" options={{ presentation: 'modal', title: 'New Module' }} />
+        <Stack.Screen name="focus/[id]" options={{headerShown:false}}/>
       </Stack>
       <StatusBar style="light" />
     </ThemeProvider>
