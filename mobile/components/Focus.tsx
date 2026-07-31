@@ -18,7 +18,8 @@ export default function FocusButton({title, onPress, selected}: FocusButtonProps
 
             styles.button, 
             {opacity: pressed ? 0.8 : 1}
-        
+           
+            
 
         ]} onPress={(onPress)}>
             <Text style ={styles.text}>
@@ -52,5 +53,6 @@ const styles = StyleSheet.create({
     selected: {
     backgroundColor: colors.success,
     },
+   
     
 });

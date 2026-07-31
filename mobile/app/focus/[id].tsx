@@ -15,10 +15,17 @@ export default function FocusSession() {
     const{id} = useLocalSearchParams();
     
     const {token, logout} = useAuthToken();
-
     const [commitment, setCommitment] = useState<Commitment| null>(null);
-    const [seconds, setSeconds] = useState(0);
     const [running, setRunning] = useState(false);
+    const [now, setNow] = useState(Date.now());
+    const [startedAt, setStartedAt] = useState<number | null>(null);
+    const [bank, setBank] = useState(0);
+
+    const router = useRouter();
+
+
+
+
 
   const loadCommitment = async() => {
         const response = await fetch(`${API_URL}/commitments/`, {
@@ -47,7 +54,7 @@ export default function FocusSession() {
     useEffect(() => {
         if (!running) return;
         const tick = setInterval(() => {
-            setSeconds((s) => s + 1);
+            setNow(Date.now());
         }, 1000);
         return () => clearInterval(tick);
     }, [running]);
@@ -72,27 +79,39 @@ export default function FocusSession() {
           return;
         };
         setRunning(false);
-        setSeconds(0);
+        setBank(0);
+        setStartedAt(null);
         loadCommitment();
+        router.back() 
     
       };
 
 
-
-
-
-
-
-
-
-
-    // display maths: 87s -> "1:27". padStart pads '7' to '07'.
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const elapsedMs = bank + (running && startedAt? now - startedAt: 0 );
+    const seconds = Math.floor(elapsedMs/1000);
+    const mins = Math.floor(seconds/60);
+    const secs = seconds %60;
     const clock = `${mins}:${String(secs).padStart(2, '0')}`;
 
     const requiredMins = commitment ? commitment.required_seconds / 60 : 0;
     const bar = commitment ? Math.min(seconds / commitment.required_seconds, 1) : 0;
+
+
+    const handleStartPause = () => {
+     if (running) {
+      if (startedAt) setBank(bank +(Date.now() - startedAt));
+     }
+     else {
+      setStartedAt(Date.now());
+     }
+     setRunning(!running)
+
+    }
+
+    
+
+
+
 
 
     return (
@@ -125,12 +144,15 @@ export default function FocusSession() {
                 <View style={styles.bottom}>
                     <FocusButton
                         title={running ? 'Pause session' : 'Start session'}
-                        onPress={() => setRunning(!running)}
+                        onPress={() => handleStartPause()}
                         selected={running}
                     />
                     <FocusButton
                         title={'Check in session'}
-                        onPress={()=>handleCheckin(commitment.id)}
+                        onPress={()=>{
+                          handleCheckin(commitment.id)
+                           
+                         }}
                         />
                 </View>
             </View>
