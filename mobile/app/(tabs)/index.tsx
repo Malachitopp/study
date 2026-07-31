@@ -52,17 +52,7 @@ export default function HomeScreen() {
       };
 
 
-  const [seconds, setSeconds] = useState(0);
-  const[running, setRunning] = useState(false);
 
-  useEffect(()=>{
-    if (!running) return;
-    const id = setInterval(() => {
-      setSeconds((s) => s + 1);
-
-    }, 1000);
-    return () => clearInterval(id);
-  }, [running]);
 
 
     useEffect(() => {
@@ -183,10 +173,6 @@ export default function HomeScreen() {
             <Tile value = {saved} information = {`saved | ${numOfSavedCommitments} completed`} tone = {'success'}/>
           </View>
         </View>}
-      ListFooterComponent={
-        <View style={styles.footer}>
-            <Text style={styles.timer}>{seconds}s</Text>
-        </View>}
       ListEmptyComponent={
         <View style = {styles.empty}>
           <Text style = {styles.emptyText}>Nothing Due Today</Text>
@@ -197,10 +183,12 @@ export default function HomeScreen() {
       style={styles.page}
       contentContainerStyle={styles.content}
       />
-
-      <FocusButton title = {`Start Focus: £${atRisk} At Risk `}
+      {next && (
+        <FocusButton title = {`Start Focus: £${(next.stake_pence/100).toFixed(2)} At Risk `}
       onPress ={() => router.push(`/focus/${next.id}`)}
       />
+      )}
+      
     </SafeAreaView>
 
 
