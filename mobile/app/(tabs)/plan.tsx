@@ -5,19 +5,21 @@ import { API_URL } from "@/constants/api";
 import { AppButton } from "@/components/app-button";
 import { spacing, colors } from "@/constants/design";
 import { useAuthToken } from "@/hooks/use-auth-token";
-
-
+import {useCommitments} from '@/hooks/use-commitments';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-
+import {useLoadTasks} from '@/hooks/use-load-tasks';
+import {ModuleCard} from '@/components/ModuleCard';
+import {useTasks} from '@/hooks/use-tasks';
 
 
 
 export default function Plan() {
     const router = useRouter() 
     const {token, logout}  = useAuthToken()
-    const[modules, setModules] = useState<{id:number; name: string}[]>([]);
+    const[modules, setModules] = useState<{id:number; name: string, user_id: number, term: string}[]>([]);
+
+
 
   const loadModules = async () => {
     const response = await fetch(`${API_URL}/modules/`, {
@@ -32,20 +34,22 @@ export default function Plan() {
     setModules(data);
   };
   useFocusEffect(
-    useCallback(
-        ()=> {
-            if(token) {loadModules()}
-        }, [token]
-    )
-  );
-  
+    useCallback( () => {
+      if (token) {loadModules()};
+
+    }, [token]))
+
+  const {commitments} = useCommitments();
+  const {tasks} = useTasks();
+
     return (
       <SafeAreaView style={styles.page} edges={['top']}>
         <View style={styles.page}> 
             <View style={styles.section}>
               <Text style= {styles.sectionLabel}>Your Modules</Text>
               {modules.map((m) => (
-                <AppButton key={m.id} title={m.name} onPress={() => router.push(`/module/${m.id}`)} />
+                <ModuleCard key = {m.id} onPress={() => router.push(`/module/${m.id}`)}
+                 commitment = {commitments} tasks = {tasks} module = {m} />
               ))}
             </View>
 
