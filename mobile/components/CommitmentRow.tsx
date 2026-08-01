@@ -4,52 +4,57 @@ import { View, Text } from "react-native";
 import { StyleSheet } from "react-native";
 import { AppButton } from "./app-button";
 import { Commitment } from "@/constants/types";
+import { Pressable } from "react-native";
 
 type CommitmentRowProps = {
     commitment: Commitment;
+    onPress?: () => void;
+    Today?: boolean;
 };
 
 
 
-export function CommitmentRow({commitment, }: CommitmentRowProps) {
+export function CommitmentRow({commitment, onPress, Today}: CommitmentRowProps) {
     
     return (
-        <View style = {styles.card}>
-            <View style = 
-            {
-                [
-                    styles.rail, commitment.status === 'completed' ? styles.completed : 
-                    commitment.status === 'active' ? styles.active  : styles.failed
-                ]
-            }
-            />
-            <View style={styles.middle}>
-                <Text
-                style = {styles.title}>
-                    {commitment.task.title}
+       
+        <Pressable onPress = {onPress}> 
+        
+            <View style = {styles.card}>
+                <View style = 
+                {
+                    [
+                        styles.rail, commitment.status === 'completed' ? styles.completed : 
+                        commitment.status === 'active' ? styles.active  : styles.failed
+                    ]
+                }
+                />
+                <View style={styles.middle}>
+                    <Text
+                    style = {styles.title}>
+                        {commitment.task.title}
+                        
+                    </Text>
+                    <Text 
+                    style = {styles.meta}>
+                        {commitment.status} | due {new Date(commitment.deadline).toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'}) }
+                    </Text>
                     
-                </Text>
-                <Text 
-                style = {styles.meta}>
-                    {commitment.status} | due {commitment.deadline}
-                </Text>
+                </View>
+                <View style= {styles.trailing}>
+                    <Text style = {styles.money}>
+                        £{(commitment.stake_pence/100).toFixed(2)}
+                    </Text>
+                    <Text style = {styles.meta}>{commitment.required_seconds/60 }m Required</Text>
+                </View>
+
+
                 
             </View>
-            <View style= {styles.trailing}>
-                <Text style = {styles.money}>
-                    £{(commitment.stake_pence/100).toFixed(2)}
-                </Text>
-                <Text style = {styles.meta}>{commitment.required_seconds }m</Text>
-            </View>
+        </Pressable>
 
 
-            
-        </View>
-        
-
-
-
-    )
+            )
 }
 
 const styles = StyleSheet.create(
