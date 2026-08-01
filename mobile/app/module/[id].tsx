@@ -6,8 +6,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { AppButton } from "@/components/app-button";
 import { colors, radius, spacing } from '@/constants/design';
 import { useAuthToken } from '@/hooks/use-auth-token';
-
-
+import {useLoadTasks} from '@/hooks/use-load-tasks';
+import {useCreateTasks} from '@/hooks/use-create-tasks';
 
 
 export default function ModuleScreen() {
@@ -16,57 +16,17 @@ export default function ModuleScreen() {
 
 
 
-    const [task, setTask] = useState<{id:number; title:string}[]>([]);
+    const {task, loadtasks} = useLoadTasks(String(id));
     const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
-    const loadtasks = async () => {
-        const response = await fetch(`${API_URL}/modules/${id}/tasks/`, {
-        headers: {Authorization: 'Bearer ' + token }
-        });
-        if (response.status === 401) {
-        logout();
-        return;
-    }
-        const data = await response.json();
-        if (!response.ok) {console.log('tasks fetch failed', response.status, data);
-        return;
-        }
 
-        setTask(data)
-        };
     
 
-    useFocusEffect(
-        useCallback(()=>{
-            if (token) loadtasks();
-        }, [token,id])
-    );
-    
-    const [taskTitle, setTaskTitle] = useState('');
-    const [selectedKind, setSelectedKind] = useState<string | null>(null);
-    const [taskDueDate, setTaskDueDate] = useState(new Date());
 
-    const handleCreateTask = async () => {
-        if (!taskTitle || !selectedKind) {
-            console.log("need a title and a kind");
-            return;
-        }
-        const response = await fetch(`${API_URL}/modules/${id}/tasks/`, {
-            method : 'POST',
-            headers: {'Content-Type': 'application/json',Authorization: 'Bearer ' + token},
-            body: JSON.stringify({title: taskTitle, kind : selectedKind,
-                 due_at: taskDueDate.toISOString()})
-        });
-        if (response.status === 401) {
-        logout();
-        return;}
-        const data = await response.json() 
-        if (!response.ok) {console.log('failed', response.status, data); return;}
-        loadtasks();
-        setTaskTitle('');
-        setSelectedKind(null);
+    const {taskTitle, setTaskTitle, selectedKind, setSelectedKind, taskDueDate,
+        setTaskDueDate, handleCreateTask} = useCreateTasks(String(id), loadtasks);
 
-    };
+
     const TASK_KINDS = ['problem sheet', 'revision', 'reading', 'coursework'];
    
 

@@ -7,7 +7,8 @@ import { API_URL } from "@/constants/api";
 import { Commitment } from "@/constants/types";
 import { spacing, colors } from '@/constants/design';
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { AppButton } from "@/components/app-button";
+import {useCommitments} from '@/hooks/use-commitments';
 
 
 
@@ -24,7 +25,7 @@ export default function FocusSession() {
     const router = useRouter();
 
 
-
+    const [loading, setLoading]  = useState(true);
 
 
   const loadCommitment = async() => {
@@ -33,17 +34,23 @@ export default function FocusSession() {
         });
                 if (response.status === 401) {
                 logout();
+                setLoading(false);
                 return;}
         const data = await response.json() ;
-        const found = data.find((t: Commitment)=> t.id === Number(id))
+        
 
         if (!response.ok) {
-          console.log('commitments fetch failed', response.status, data)
+          console.log('commitments fetch failed', response.status, data);
+          setLoading(false);
           return;
         };
+        const found = data.find((t: Commitment)=> t.id === Number(id))
         setCommitment(found);
+        setLoading(false);
 
       };
+
+
     useEffect( () => {
         if (token) {
             loadCommitment();
@@ -81,7 +88,6 @@ export default function FocusSession() {
         setRunning(false);
         setBank(0);
         setStartedAt(null);
-        loadCommitment();
         router.back() 
     
       };
@@ -116,7 +122,14 @@ export default function FocusSession() {
 
     return (
     <SafeAreaView style={styles.page} edges={['top']}>
-        {commitment && (
+          {loading ? (
+            <Text style= {styles.emptyText}>Loading...</Text>
+          ) : !commitment ? (
+            <View>
+            <Text style = {styles.emptyText}>Commitment not found.</Text>
+            <AppButton title="Return to Dashboard" onPress={() => router.back()} />
+            </View>
+          ) : ( 
             <View style={styles.content}>
                 {/* top block: what you're working on */}
                 <View style={styles.top}>
@@ -147,7 +160,7 @@ export default function FocusSession() {
                         onPress={() => handleStartPause()}
                         selected={running}
                     />
-                    <FocusButton
+                    <AppButton
                         title={'Check in session'}
                         onPress={()=>{
                           handleCheckin(commitment.id)
@@ -156,7 +169,7 @@ export default function FocusSession() {
                         />
                 </View>
             </View>
-        )}
+    )}
     </SafeAreaView>
     )
 }
@@ -234,5 +247,9 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: colors.accent,
     // width is set inline as a percentage — it's data, not styling
+  },
+    emptyText: {
+    color: colors.textMuted,
+    fontSize: 13.5,
   },
 });

@@ -17,8 +17,8 @@ export default function FocusButton({title, onPress, selected}: FocusButtonProps
         <Pressable style = {({pressed}) => [
 
             styles.button, 
-            {opacity: pressed ? 0.8 : 1}
-           
+            {opacity: pressed ? 0.8 : 1},
+            selected && styles.selected
             
 
         ]} onPress={(onPress)}>
