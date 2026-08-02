@@ -83,7 +83,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.page} edges={['top']}>
     <FlatList
       data = {dueToday}
-      renderItem={({item}) => <CommitmentRow commitment={item}/>}
+      renderItem={({item}) => <CommitmentRow commitment={item} onPress = { ()=> router.push(`/focus/${item.id}`)} />}
       keyExtractor={item => (item.id).toString()}
       ListHeaderComponent={
         <View style={styles.header}>
