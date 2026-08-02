@@ -7,6 +7,6 @@ class Settings(BaseSettings):
     algorithm :str  = "HS256"
     access_token_expire_minutes: int = 15 
     model_config = SettingsConfigDict(env_file = ".env")
-    
+    cool_off:int = 5
 
 settings = Settings() 

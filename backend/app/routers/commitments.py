@@ -9,6 +9,11 @@ from app.models.task import Task
 from app.models.commitment import Commitment
 from app.schemas.commitment import CommitmentCreate, CommitmentOut
 from app.models.module import Module
+from app.routers.checkins import get_owned_commitment
+from app.models.commitment import CommitmentStatus
+from datetime import datetime, timezone, timedelta
+from app.config import settings
+
 
 router = APIRouter(prefix="/tasks/{task_id}/commitments", tags = ["commitments"]) 
 
@@ -49,3 +54,21 @@ def all_commitments(db:Session = Depends(get_db),
         Module.user_id == current_user.id
     ).all() 
 
+
+
+
+
+@my_commitments.post("/{commitment_id}/cancel", response_model = CommitmentOut)
+def cancel_commitment(commitment_id:int, db:Session =Depends(get_db),
+                      current_user:User = Depends(get_current_user)):
+    commitment = get_owned_commitment(db, commitment_id, current_user)
+    if commitment.status != CommitmentStatus.active:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Only active commitments can be cancelled")
+    age = datetime.now(timezone.utc) - commitment.created_at 
+    if age > timedelta(minutes = settings.cool_off):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail ="Too long has passed for cancellation"
+        )
+    commitment.status = CommitmentStatus.cancelled
+    db.commit() 
+    db.refresh(commitment)
+    return commitment
