@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import String, Integer, DateTime, Enum as SAEnum, Column, ForeignKey
+from sqlalchemy import String, Integer, DateTime, Enum as SAEnum, Column, ForeignKey, func
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -25,6 +25,7 @@ class Commitment(Base):
     verification_type = Column(SAEnum(VerificationType),nullable = False )
     status = Column(SAEnum(CommitmentStatus), nullable = False, default = CommitmentStatus.active)
     required_seconds = Column(Integer, nullable=False) 
+    created_at = Column(DateTime(timezone=True), nullable = False, server_default = func.now())
     @property
     def module_title(self) -> str:
         return self.task.module.name
