@@ -3,7 +3,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { StyleSheet, View, Text } from "react-native";
 import { API_URL } from "@/constants/api";
 import { AppButton } from "@/components/app-button";
-import { spacing, colors } from "@/constants/design";
+import { spacing, colors, radius} from "@/constants/design";
 import { useAuthToken } from "@/hooks/use-auth-token";
 import {useCommitments} from '@/hooks/use-commitments';
 
@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {useLoadTasks} from '@/hooks/use-load-tasks';
 import {ModuleCard} from '@/components/ModuleCard';
 import {useTasks} from '@/hooks/use-tasks';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 
 
@@ -42,14 +43,27 @@ export default function Plan() {
   const {commitments} = useCommitments();
   const {tasks} = useTasks();
 
+
+ 
+
+
     return (
       <SafeAreaView style={styles.page} edges={['top']}>
         <View style={styles.page}> 
             <View style={styles.section}>
               <Text style= {styles.sectionLabel}>Your Modules</Text>
               {modules.map((m) => (
-                <ModuleCard key = {m.id} onPress={() => router.push(`/module/${m.id}`)}
-                 commitment = {commitments} tasks = {tasks} module = {m} />
+                <ReanimatedSwipeable key ={m.id} renderRightActions={
+                  () => (
+                      <View style={styles.deleteAction}>
+                        <Text style={styles.deleteText}>Delete</Text>
+                      </View>
+                    )
+
+                }>
+                  <ModuleCard key = {m.id} onPress={() => router.push(`/module/${m.id}`)}
+                  commitment = {commitments} tasks = {tasks} module = {m} />
+                 </ReanimatedSwipeable>
               ))}
             </View>
 
@@ -79,4 +93,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     textTransform: 'uppercase',
 },
+deleteAction: {
+    width: 80,
+    backgroundColor: colors.danger,
+    borderRadius: radius.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+},
+deleteText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+},
+
 });
