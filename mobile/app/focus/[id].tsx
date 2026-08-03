@@ -9,7 +9,7 @@ import { spacing, colors } from '@/constants/design';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppButton } from "@/components/app-button";
 import {useCommitments} from '@/hooks/use-commitments';
-
+const CANCEL_TIME = 300000
 
 
 export default function FocusSession() {
@@ -67,7 +67,7 @@ export default function FocusSession() {
     }, [running]);
 
     
-      const handleCheckin = async(id: number) => {
+      const handleCheckin = async() => {
         const response = await fetch(`${API_URL}/commitments/${id}/checkins/`, {
           method:  'POST',
           headers: {Authorization: 'Bearer ' + token,
@@ -98,7 +98,7 @@ export default function FocusSession() {
     const mins = Math.floor(seconds/60);
     const secs = seconds %60;
     const clock = `${mins}:${String(secs).padStart(2, '0')}`;
-
+    const cancelTime = commitment ? now - new Date(commitment.created_at).getTime() : Infinity;
     const requiredMins = commitment ? commitment.required_seconds / 60 : 0;
     const bar = commitment ? Math.min(seconds / commitment.required_seconds, 1) : 0;
 
@@ -114,7 +114,23 @@ export default function FocusSession() {
 
     }
 
-    
+  
+
+    const handleCancel = async () => {
+      const response = await fetch(`${API_URL}/commitments/${id}/cancel`, {
+        method: 'POST',
+        headers: {Authorization: 'Bearer ' + token} 
+      });
+      if (response.status === 401) {
+                logout();
+                return;};
+      const data = await response.json()
+      if (!response.ok) {console.log('Cancel Failed', response.status, data);
+          return;
+        };
+      router.back()
+
+    }
 
 
 
@@ -163,10 +179,15 @@ export default function FocusSession() {
                     <AppButton
                         title={'Check in session'}
                         onPress={()=>{
-                          handleCheckin(commitment.id)
+                          handleCheckin()
                            
                          }}
                         />
+                    {cancelTime <= CANCEL_TIME && (
+                      <AppButton title="Cancel Session"
+                      onPress ={handleCancel}
+                      cancel= {true}
+                    />)}
                 </View>
             </View>
     )}

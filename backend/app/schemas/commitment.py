@@ -19,6 +19,7 @@ class CommitmentOut(BaseModel):
     required_seconds: int 
     task:TaskOut
     module_title: str 
+    created_at: datetime 
 
     class Config:
         from_attributes = True 

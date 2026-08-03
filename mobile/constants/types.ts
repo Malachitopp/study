@@ -6,6 +6,7 @@ export type Commitment = {
     required_seconds: number;
     task: Task;
     module_title: string 
+    created_at: string
 };
 
 export type Task = {
