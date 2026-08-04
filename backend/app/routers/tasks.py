@@ -9,6 +9,7 @@ from app.models.module import Module
 from app.schemas.task import TaskCreate, TaskOut
 from app.models.task import Task 
 from app.models.commitment import Commitment 
+from app.schemas.commitment import CommitmentStatus
 
 router = APIRouter(prefix="/modules/{module_id}/tasks", tags = ["tasks"]) 
 
@@ -35,7 +36,7 @@ def create_task(module_id: int, task_in:TaskCreate, db:Session = Depends(get_db)
 def list_tasks(module_id:int, db:Session = Depends(get_db), current_user: User
                = Depends(get_current_user)):
     module = get_owned_module(module_id, db, current_user)
-    return db.query(Task).filter(Task.module_id == module.id).all() 
+    return db.query(Task).filter(Task.module_id == module.id, Task.archived == False).all() 
 
 my_tasks = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -43,7 +44,7 @@ my_tasks = APIRouter(prefix="/tasks", tags=["tasks"])
 def get_tasks( db:Session = Depends(get_db),
               current_user: User = Depends(get_current_user)):
     return db.query(Task).join(Task.module).filter(Module.user_id==
-                                                    current_user.id).all()
+                                                    current_user.id, Task.archived == False).all()
 
 @router.delete("/{task_id}", status_code = status.HTTP_204_NO_CONTENT)
 def delete_task(task_id:int, module_id:int, db:Session = Depends(get_db),
@@ -52,8 +53,14 @@ def delete_task(task_id:int, module_id:int, db:Session = Depends(get_db),
     task = db.query(Task).filter(Task.id == task_id, Task.module_id == module.id).first()
     if not task:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail="Task not found")
-    ineligible = db.query(Commitment).filter(Commitment.task_id == task_id).first()
+    ineligible = db.query(Commitment).filter(Commitment.task_id == task_id, Commitment.status == CommitmentStatus.active ).first()
     if ineligible:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Task has associated commitments and cannot be deleted")
+    has_history = db.query(Commitment).filter( Commitment.task_id == task_id).first() 
+    if has_history:
+        task.archived = True
+        db.commit()
+        return 
+    
     db.delete(task)
     db.commit() 
