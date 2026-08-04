@@ -8,7 +8,8 @@ class ModuleOut(BaseModel):
     id: int 
     user_id: int 
     name: str
-    term: str
+    term: str   
+    
 
     class Config:
         from_attributes = True 

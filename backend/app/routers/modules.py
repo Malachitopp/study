@@ -10,7 +10,7 @@ from app.schemas.module import ModuleCreate, ModuleOut
 from app.models.task import Task
 from app.models.commitment import Commitment
 from fastapi import HTTPException
-
+from app.schemas.commitment import CommitmentStatus
 
 router = APIRouter(prefix="/modules", tags = ["modules"]) 
 
@@ -25,21 +25,33 @@ def create_module(module_in: ModuleCreate, db:Session = Depends(get_db),
     return module 
 
 @router.get("/", response_model = List[ModuleOut])
-def list_modules(db:Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(Module).filter(Module.user_id ==current_user.id).all() 
+def list_modules( db:Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return db.query(Module).filter(Module.user_id ==current_user.id, Module.archived ==False ).all() 
 
 
 @router.delete("/{module_id}", status_code = status.HTTP_204_NO_CONTENT)
-def delete_module(module_id:int, db:Session =Depends(get_db), current_user:User
-                  =Depends(get_current_user)):
+def delete_module(module_id: int, db: Session = Depends(get_db),
+                  current_user: User = Depends(get_current_user)):
     module = db.query(Module).filter(
-        module_id == Module.id, Module.user_id == current_user.id).first()
+        Module.id == module_id, Module.user_id == current_user.id).first()
     if not module:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Module not found")
-    ineligible = db.query(Commitment).join(Task).filter(Task.module_id == module_id).first() 
+
+    ineligible = db.query(Commitment).join(Task).filter(
+        Task.module_id == module_id,
+        Commitment.status == CommitmentStatus.active).first()
     if ineligible:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Module has associated commitments and cannot be deleted")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="Module has active commitments and cannot be deleted")
+
+    has_history = db.query(Commitment).join(Task).filter(
+        Task.module_id == module_id).first()
+    if has_history:
+        module.archived = True
+        db.commit()
+        return
+
     for task in module.tasks:
         db.delete(task)
     db.delete(module)
-    db.commit() 
+    db.commit()
