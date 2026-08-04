@@ -3,14 +3,14 @@ import {API_URL} from '@/constants/api';
 import {useAuthToken} from '@/hooks/use-auth-token';
 import {useFocusEffect} from 'expo-router';
 import {useCallback} from 'react';
-
+import { Task } from '@/constants/types';
 
 
 
 
 export function useLoadTasks(moduleId: string|number){
     const { token, logout } = useAuthToken();
-    const [task, setTask] = useState<{id:number; title:string}[]>([]);
+    const [task, setTask] = useState<Task[]>([]);
 
 
     

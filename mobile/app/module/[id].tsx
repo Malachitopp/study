@@ -1,5 +1,5 @@
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
-import { TextInput, StyleSheet, View, Text, ScrollView } from 'react-native'
+import { TextInput, StyleSheet, View, Text, ScrollView, Alert } from 'react-native'
 import { useState, useCallback } from 'react';
 import { API_URL } from '@/constants/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -8,6 +8,14 @@ import { colors, radius, spacing } from '@/constants/design';
 import { useAuthToken } from '@/hooks/use-auth-token';
 import {useLoadTasks} from '@/hooks/use-load-tasks';
 import {useCreateTasks} from '@/hooks/use-create-tasks';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { Pressable } from "react-native";
+
+
+
+
+
+
 
 
 export default function ModuleScreen() {
@@ -64,7 +72,22 @@ export default function ModuleScreen() {
 
 
 
+    const handleDelete = async (id:number, module_id: number) => {
+      const response = await fetch(`${API_URL}/modules/${module_id}/tasks/${id}`, {
+        method : "DELETE",
+        headers: {Authorization: 'Bearer ' + token}
+      })
+           if (response.status === 401) {
+                  logout() 
+                  return;}
+          if (!response.ok) {
+          const data = await response.json();   // parse only now — a body is guaranteed here
+          Alert.alert(data.detail);
+          return;
+        }
 
+      loadtasks() 
+    }
 
 
 
@@ -104,6 +127,14 @@ export default function ModuleScreen() {
         <View style={styles.section}>
             <Text style={styles.sectionLabel}>Tasks</Text>
             {task.map((c) => (
+          <ReanimatedSwipeable key = {c.id}
+          renderRightActions={
+            () => (
+              <Pressable style = {styles.deleteAction} onPress={()=>handleDelete(c.id, c.module_id)}>
+                <Text style={styles.deleteText}>Delete</Text>
+              </Pressable>
+            )
+          }>
             <View key = {c.id} style = {styles.row}>
                 <Text style={styles.taskTitle}>{c.title}</Text>
                 <AppButton
@@ -111,6 +142,7 @@ export default function ModuleScreen() {
                 selected = {selectedTaskId === c.id }
                 onPress={() => setSelectedTaskId(c.id)}/>
             </View>
+          </ReanimatedSwipeable>
         ))}
         </View>
 
@@ -195,4 +227,17 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
     padding: spacing.md,
   },
+  deleteAction: {
+    width: 80,
+    backgroundColor: colors.danger,
+    borderRadius: radius.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+},
+deleteText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+},
 });

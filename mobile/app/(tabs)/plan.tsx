@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
 import { useFocusEffect, useRouter } from "expo-router";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, Alert } from "react-native";
 import { API_URL } from "@/constants/api";
 import { AppButton } from "@/components/app-button";
 import { spacing, colors, radius} from "@/constants/design";
 import { useAuthToken } from "@/hooks/use-auth-token";
 import {useCommitments} from '@/hooks/use-commitments';
-
+import { Pressable } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {useLoadTasks} from '@/hooks/use-load-tasks';
 import {ModuleCard} from '@/components/ModuleCard';
@@ -43,7 +43,26 @@ export default function Plan() {
   const {commitments} = useCommitments();
   const {tasks} = useTasks();
 
+  
+  const handleDelete = async (id:number) => {
+    const response = await fetch(`${API_URL}/modules/${id}`, {
+      method: "DELETE",
+      headers: {Authorization: 'Bearer ' + token}
 
+    });
+     if (response.status === 401) {
+            logout() 
+            return;}
+    if (!response.ok) {
+    const data = await response.json();   // parse only now — a body is guaranteed here
+    Alert.alert(data.detail);
+    return;
+  }
+
+
+    loadModules() 
+
+  }
  
 
 
@@ -55,9 +74,9 @@ export default function Plan() {
               {modules.map((m) => (
                 <ReanimatedSwipeable key ={m.id} renderRightActions={
                   () => (
-                      <View style={styles.deleteAction}>
+                      <Pressable style = {styles.deleteAction} onPress={()=>handleDelete(m.id)}>
                         <Text style={styles.deleteText}>Delete</Text>
-                      </View>
+                      </Pressable>
                     )
 
                 }>
