@@ -1,4 +1,4 @@
-import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useFocusEffect, useLocalSearchParams} from "expo-router";
 import { TextInput, StyleSheet, View, Text, ScrollView, Alert } from 'react-native'
 import { useState, useCallback } from 'react';
 import { API_URL } from '@/constants/api';
@@ -10,7 +10,8 @@ import {useLoadTasks} from '@/hooks/use-load-tasks';
 import {useCreateTasks} from '@/hooks/use-create-tasks';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { Pressable } from "react-native";
-
+import {Module} from '@/constants/types'
+import { useEffect } from "react";
 
 
 
@@ -89,11 +90,42 @@ export default function ModuleScreen() {
       loadtasks() 
     }
 
+    const [module, setModule] = useState<Module>();
+    const [loading, setLoading] = useState(true);
+
+
+    const loadModule = async () => {
+      const response = await fetch(`${API_URL}/modules/`, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+              if (response.status === 401) {
+              logout() 
+              return;}
+
+      const data = await response.json();
+  
+      if (!response.ok) {
+          console.log('Module fetch failed', response.status, data);
+          setLoading(false);
+          return;
+        };
+      const found = data.find( ( t: Module) => t.id === Number(id))
+      setModule(found);
+      setLoading(false);
+    };
+
+    
+     useEffect( () => {
+       if (token) {
+        loadModule();
+            }}, [token]);
+
 
 
     return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Module {id}</Text>
+   
+        <Text style={styles.title}>{module && module.name}</Text>
 
         <View style={styles.section}>
             <Text style={styles.sectionLabel}>New Task</Text>
@@ -172,6 +204,7 @@ export default function ModuleScreen() {
                }}/>
             <AppButton title="Create commitment" onPress={handleCreateCommitment} />
           </View>
+
     </ScrollView>
     );
 }

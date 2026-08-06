@@ -5,10 +5,11 @@ type AppButtonProps = {
     title:string;
     onPress: () => void;
     selected?: boolean 
-    cancel?: boolean 
+    cancel?: boolean
+    ghost?: boolean 
 };
 
-export function AppButton({title, onPress, selected, cancel}: AppButtonProps) {
+export function AppButton({title, onPress, selected, cancel, ghost }: AppButtonProps) {
     
 
     
@@ -17,10 +18,11 @@ export function AppButton({title, onPress, selected, cancel}: AppButtonProps) {
             styles.button,
             {opacity: pressed ? 0.8 : 1},
             selected && styles.selected,
-            cancel && styles.cancelled 
+            cancel && styles.cancelled,
+            ghost && styles.ghost 
             
         ]} onPress={(onPress)}>
-            <Text style={styles.text}>{title}</Text>
+            <Text style={[styles.text, ghost && styles.ghostText]}>{title}</Text>
         </Pressable>
         
         );
@@ -56,5 +58,18 @@ const styles = StyleSheet.create({
     borderColor: colors.danger,
     elevation: 0,
     },
+    ghost: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.borders,
+    borderStyle: 'dashed',
+    elevation: 0,
+},
+    ghostText: {
+        color: colors.textMuted,
+        fontWeight: '600',
+      
+    }
+
 
 });

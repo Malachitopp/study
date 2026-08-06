@@ -68,13 +68,23 @@ export default function Plan() {
 
     return (
       <SafeAreaView style={styles.page} edges={['top']}>
+        
         <View style={styles.page}> 
             <View style={styles.section}>
               <Text style= {styles.sectionLabel}>Your Modules</Text>
               {modules.map((m) => (
                 <ReanimatedSwipeable key ={m.id} renderRightActions={
                   () => (
-                      <Pressable style = {styles.deleteAction} onPress={()=>handleDelete(m.id)}>
+                      <Pressable style = {styles.deleteAction} onPress={()=>
+                        Alert.alert(
+                          `Are you sure you want to delete ${m.name}?`,
+                          undefined,
+                          [
+                            {text: 'Cancel', style: 'cancel'},
+                            {text: 'Delete', style: 'destructive', onPress: () => handleDelete(m.id)},
+                          ]
+                        )
+                      }>
                         <Text style={styles.deleteText}>Delete</Text>
                       </Pressable>
                     )
@@ -88,7 +98,8 @@ export default function Plan() {
 
             <View style ={styles.section}>
               
-              <AppButton title="Add Module" onPress={() => router.push('/new-module')}/>
+              <AppButton title="Add Module" onPress={() => router.push('/new-module')}
+                ghost={true} />
               
             </View>
         </View> 
