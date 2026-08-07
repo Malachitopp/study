@@ -30,6 +30,16 @@ def create_commitment(task_id: int, commitment_in: CommitmentCreate, db:Session=
                       Depends(get_db), current_user: 
                       User = Depends(get_current_user)):
     task = get_owned_tasks(db, task_id, current_user)
+
+    available = commitment_in.deadline - datetime.now(timezone.utc) 
+    if available < timedelta(seconds = commitment_in.required_seconds):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
+                            detail="Required study time exceeds time till expiry")
+    active_commitments = db.query(Commitment).filter(Commitment.task_id == task.id, Commitment.status == CommitmentStatus.active).first()
+    if active_commitments:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
+                            detail="Commitment for this task already active")
+    
     commitment = Commitment(task_id= task.id,  **commitment_in.model_dump())
     db.add(commitment)
     db.commit()
