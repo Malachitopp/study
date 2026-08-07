@@ -1,4 +1,4 @@
-import { useFocusEffect, useLocalSearchParams} from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams} from "expo-router";
 import { TextInput, StyleSheet, View, Text, ScrollView, Alert } from 'react-native'
 import { useState, useCallback } from 'react';
 import { API_URL } from '@/constants/api';
@@ -12,65 +12,17 @@ import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeabl
 import { Pressable } from "react-native";
 import {Module} from '@/constants/types'
 import { useEffect } from "react";
-
-
-
+import { TaskRow } from "@/components/TaskRow";
+import { useCommitments } from "@/hooks/use-commitments";
 
 
 
 
 export default function ModuleScreen() {
     const{id} = useLocalSearchParams();
-    const {token, logout} = useAuthToken() 
-
-
-
-    const {task, loadtasks} = useLoadTasks(String(id));
-    const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
-
-
-    
-
-
-    const {taskTitle, setTaskTitle, selectedKind, setSelectedKind, taskDueDate,
-        setTaskDueDate, handleCreateTask} = useCreateTasks(String(id), loadtasks);
-
-
-    const TASK_KINDS = ['problem sheet', 'revision', 'reading', 'coursework'];
-   
-
-    
-
- 
-    const[stakePounds, setStakePounds] = useState('');
-    const [deadlineDate, setDeadlineDate] = useState(new Date())
-    const [requiredSeconds, setRequiredSeconds] = useState('');
-
-    const handleCreateCommitment = async () =>{
-        if (!selectedTaskId) {console.log("no id selected"); return;}
-        const response = await fetch(`${API_URL}/tasks/${selectedTaskId}/commitments/`,
-            {
-                method: 'POST',
-                headers: {Authorization: 'Bearer ' + token,
-                    'Content-Type': 'application/json'
-                 },
-                 body: JSON.stringify({
-                    stake_pence: Math.round(Number(stakePounds) * 100 ), 
-                    deadline: deadlineDate.toISOString(),
-                    verification_type:'timer',
-                    required_seconds:(Number(requiredSeconds) *60) 
-                 }),
-            }
-        );
-        if (response.status === 401) {
-        logout();
-        return;}
-        const data = await response.json();
-        if (!response.ok) {console.log('create failed', response.status, data); return;}
-        setStakePounds('');
-        setRequiredSeconds('');
-    }
-
+    const {token, logout} = useAuthToken(); 
+    const {commitments} =useCommitments();
+    const {task, loadtasks} = useLoadTasks(Number(id));
 
 
     const handleDelete = async (id:number, module_id: number) => {
@@ -128,35 +80,6 @@ export default function ModuleScreen() {
         <Text style={styles.title}>{module && module.name}</Text>
 
         <View style={styles.section}>
-            <Text style={styles.sectionLabel}>New Task</Text>
-            <TextInput
-                style = {styles.input}
-                value = { taskTitle}
-                onChangeText={setTaskTitle}
-                placeholder="Title"
-                placeholderTextColor={colors.textMuted}
-            />
-
-            <DateTimePicker
-                value = {taskDueDate}
-                mode = "datetime"
-                themeVariant="dark"
-                onChange={(event, selectedDate) => {
-                    if (selectedDate) setTaskDueDate(selectedDate)
-                }}
-                />
-            {TASK_KINDS.map((k) => (
-                <AppButton
-                key={k}
-                title={k}
-                selected = {selectedKind === k }
-                onPress={() => setSelectedKind(k)}
-                />
-            ))}
-            <AppButton title = {"Create Task"} onPress={handleCreateTask}/>
-        </View>
-
-        <View style={styles.section}>
             <Text style={styles.sectionLabel}>Tasks</Text>
             {task.map((c) => (
           <ReanimatedSwipeable key = {c.id}
@@ -167,43 +90,18 @@ export default function ModuleScreen() {
               </Pressable>
             )
           }>
-            <View key = {c.id} style = {styles.row}>
-                <Text style={styles.taskTitle}>{c.title}</Text>
-                <AppButton
-                title = {'Select'}
-                selected = {selectedTaskId === c.id }
-                onPress={() => setSelectedTaskId(c.id)}/>
-            </View>
+            <TaskRow
+              task={c}
+              commitments={commitments}
+              onStake={() => router.push(`/new-commitments?taskId=${c.id}`)}
+            />
+          
           </ReanimatedSwipeable>
         ))}
+        <AppButton title="Add Tasks" ghost onPress = {() => router.push(`/new-task?moduleId=${id}`)}/>
         </View>
 
-        <View style = {styles.section}>
-            <Text style={styles.sectionLabel}>New Commitment</Text>
-            <TextInput
-            style = {styles.input}
-            keyboardType='numeric'
-            value={stakePounds}
-            onChangeText={setStakePounds}
-            placeholder='£ Stake'
-            placeholderTextColor={colors.textMuted}
-            />
-            <TextInput 
-            style = {styles.input}
-            keyboardType='numeric'
-            value = {requiredSeconds}
-            onChangeText={setRequiredSeconds}
-            placeholder="Required study time (Minutes)"
-            placeholderTextColor={colors.textMuted}/>
-            <DateTimePicker
-               value ={deadlineDate}
-               mode = 'datetime'
-               themeVariant="dark"
-               onChange={(event, selectedDate) => {
-                if (selectedDate) setDeadlineDate(selectedDate)
-               }}/>
-            <AppButton title="Create commitment" onPress={handleCreateCommitment} />
-          </View>
+
 
     </ScrollView>
     );

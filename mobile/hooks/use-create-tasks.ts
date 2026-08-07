@@ -31,6 +31,7 @@ export function useCreateTasks(moduleId: string | number, onCreated: () => void)
             onCreated();
             setTaskTitle('');
             setSelectedKind(null);
+            
 
         };
 

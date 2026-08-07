@@ -36,6 +36,19 @@ export default function RootLayout() {
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="new-module" options={{ presentation: 'modal', title: 'New Module' }} />
           <Stack.Screen name="focus/[id]" options={{headerShown:false}}/>
+          <Stack.Screen name="new-commitments" options={{
+            presentation: 'formSheet',
+            sheetAllowedDetents: 'fitToContents',   // or [0.6, 1]
+            sheetGrabberVisible: true,
+            sheetCornerRadius: 24,
+          }}/>
+           <Stack.Screen name="new-task" options={{
+            presentation: 'formSheet',
+            sheetAllowedDetents: 'fitToContents',   // or [0.6, 1]
+            sheetGrabberVisible: true,
+            sheetCornerRadius: 24,
+          }}/>
+
         </Stack>
         <StatusBar style="light" />
       </ThemeProvider> 
