@@ -10,5 +10,8 @@ class Transaction(Base):
     amount_pence = Column(Integer, nullable=False) 
     stripe_payment_id = Column(String, nullable=True)
     reason = Column(String, nullable=False) 
-
+   
     commitment = relationship("Commitment", back_populates="transactions")
+    @property
+    def task_title(self) -> str:
+        return self.commitment.task.title

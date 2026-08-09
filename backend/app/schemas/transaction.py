@@ -11,7 +11,9 @@ class TransactionOut(BaseModel):
     amount_pence: int 
     reason: str
     commitment_id: int
+    task_title: str 
 
+    
     class Config:
         from_attributes = True
         
