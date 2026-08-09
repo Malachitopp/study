@@ -11,11 +11,12 @@ type TileProps = {
     value: number;
     information: string;
     tone?: 'danger' | 'success' | 'neutral';
+    percentage?: boolean
 }
 
 
 export function Tile ( 
-    {value, information, tone}: TileProps
+    {value, information, tone, percentage }: TileProps
 ) { 
 
 
@@ -29,7 +30,8 @@ export function Tile (
                 ]
                 
             }>
-                £{value.toFixed(2)}
+               {percentage ? `${value}%` : `£${value.toFixed(2)}`}
+
             </Text>
             <Text style = {
                 styles.label
