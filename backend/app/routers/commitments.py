@@ -33,7 +33,7 @@ def create_commitment(task_id: int, commitment_in: CommitmentCreate, db:Session=
 
     available = commitment_in.deadline - datetime.now(timezone.utc) 
     if available < timedelta(seconds = commitment_in.required_seconds):
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Required study time exceeds time till expiry")
     active_commitments = db.query(Commitment).filter(Commitment.task_id == task.id, Commitment.status == CommitmentStatus.active).first()
     if active_commitments:
