@@ -1,45 +1,19 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { StyleSheet, FlatList} from "react-native";
-import { useFocusEffect } from 'expo-router';
 import {Text, View} from "react-native"
-import { API_URL } from "@/constants/api";
 import { spacing, colors, radius } from "@/constants/design";
-import { useAuthToken } from "@/hooks/use-auth-token";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useCommitments } from "@/hooks/use-commitments";
-import { useEffect } from "react";
+import { useApiList } from "@/hooks/use-api-list";
 import { Transaction } from "@/constants/types";
 import { TransactionRow } from "@/components/transactionRow";
 import { Tile } from "@/components/tile";
 
 
 export default function Money() {
-    const {token, logout}  = useAuthToken();
     const {commitments, loadCommitments} = useCommitments();
-
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-
-    const loadTransactions = async () => {
-        const response = await fetch(`${API_URL}/transactions/`, {
-          method: 'GET',
-          headers: {Authorization: 'Bearer ' + token},
-        });
-        if (response.status === 401) {
-          logout(); return;
-        }
-        const data = await response.json();
-        if (!response.ok) {console.log('transactions fetch failed', response.status, data); return; }
-
-        setTransactions(data);
-      };
-
-    useFocusEffect(
-      useCallback(() => {
-          if (token) {loadTransactions()};
-      }, [token])
-    );
-
-    useEffect( ()=> {if (token) loadCommitments();},[token]);
+    // transactions has one consumer, so no named wrapper — the generic is enough
+    const { items: transactions, load: loadTransactions } = useApiList<Transaction>('/transactions/');
 
     const [refreshing, setRefresh] = useState(false);
     const handleRefresh = async ()=> {

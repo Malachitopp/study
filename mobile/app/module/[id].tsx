@@ -1,15 +1,13 @@
 import { router, useLocalSearchParams} from "expo-router";
 import { StyleSheet, View, Text, ScrollView, Alert } from 'react-native'
-import { useState } from 'react';
 import { API_URL } from '@/constants/api';
 import { AppButton } from "@/components/app-button";
 import { colors, radius, spacing } from '@/constants/design';
 import { useAuthToken } from '@/hooks/use-auth-token';
 import {useModuleTasks} from '@/hooks/use-module-tasks';
+import {useModules} from '@/hooks/use-modules';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { Pressable } from "react-native";
-import {Module} from '@/constants/types'
-import { useEffect } from "react";
 import { TaskRow } from "@/components/TaskRow";
 import { useCommitments } from "@/hooks/use-commitments";
 
@@ -18,9 +16,11 @@ import { useCommitments } from "@/hooks/use-commitments";
 
 export default function ModuleScreen() {
     const{id} = useLocalSearchParams();
-    const {token, logout} = useAuthToken(); 
+    const {token, logout} = useAuthToken();
     const {commitments} =useCommitments();
     const {tasks, loadTasks} = useModuleTasks(Number(id));
+    const {modules} = useModules();
+    const module = modules.find((m) => m.id === Number(id));
 
 
     const handleDelete = async (id:number, module_id: number) => {
@@ -39,38 +39,6 @@ export default function ModuleScreen() {
 
       loadTasks()
     }
-
-    const [module, setModule] = useState<Module>();
-    const [loading, setLoading] = useState(true);
-
-
-    const loadModule = async () => {
-      const response = await fetch(`${API_URL}/modules/`, {
-        headers: { Authorization: 'Bearer ' + token }
-      });
-              if (response.status === 401) {
-              logout() 
-              return;}
-
-      const data = await response.json();
-  
-      if (!response.ok) {
-          console.log('Module fetch failed', response.status, data);
-          setLoading(false);
-          return;
-        };
-      const found = data.find( ( t: Module) => t.id === Number(id))
-      setModule(found);
-      setLoading(false);
-    };
-
-    
-     useEffect( () => {
-       if (token) {
-        loadModule();
-            }}, [token]);
-
-
 
     return (
     <ScrollView style={styles.page} contentContainerStyle={styles.content}>

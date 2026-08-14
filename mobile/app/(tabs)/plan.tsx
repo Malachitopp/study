@@ -1,5 +1,4 @@
-import { useState, useCallback } from "react";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { StyleSheet, View, Text, Alert } from "react-native";
 import { API_URL } from "@/constants/api";
 import { AppButton } from "@/components/app-button";
@@ -10,35 +9,15 @@ import { Pressable } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {ModuleCard} from '@/components/ModuleCard';
 import {useTasks} from '@/hooks/use-tasks';
+import {useModules} from '@/hooks/use-modules';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 
 
 export default function Plan() {
-    const router = useRouter() 
-    const {token, logout}  = useAuthToken()
-    const[modules, setModules] = useState<{id:number; name: string, user_id: number, term: string}[]>([]);
-
-
-
-  const loadModules = async () => {
-    const response = await fetch(`${API_URL}/modules/`, {
-      headers: { Authorization: 'Bearer ' + token }
-    });
-            if (response.status === 401) {
-            logout() 
-            return;}
-
-    const data = await response.json();
-    if (!response.ok) { console.log('modules fetch failed', response.status, data); return; }
-    setModules(data);
-  };
-  useFocusEffect(
-    useCallback( () => {
-      if (token) {loadModules()};
-
-    }, [token]))
-
+  const router = useRouter()
+  const {token, logout}  = useAuthToken()
+  const {modules, loadModules} = useModules();
   const {commitments} = useCommitments();
   const {tasks} = useTasks();
 
