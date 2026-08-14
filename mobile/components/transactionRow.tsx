@@ -15,8 +15,10 @@ export function TransactionRow({transaction}: TransactionRowProp) {
     const reasonLabel = transaction.reason.includes('deadline') ?
     'Missed deadline' : transaction.reason
 
+    const when = new Date(transaction.created_at).toLocaleDateString('en-GB', {
+        day: 'numeric', month: 'short',
+    });
 
-    
     return(
         <View style= {styles.card}>
             <View style ={styles.middle}>
@@ -24,7 +26,7 @@ export function TransactionRow({transaction}: TransactionRowProp) {
                     {transaction.task_title}
                 </Text>
                 <Text style={styles.meta} numberOfLines={1}>
-                    {reasonLabel}
+                    {reasonLabel} · {when}
                 </Text>
             </View>
             <View style = {styles.trailing}>

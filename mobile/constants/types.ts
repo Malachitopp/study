@@ -32,7 +32,8 @@ export type Module = {
 export type Transaction = {
     id: number
     amount_pence: number
-    reason: string 
+    reason: string
     commitment_id:number
-    task_title:string 
+    task_title:string
+    created_at: string
 }

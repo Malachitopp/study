@@ -6,12 +6,15 @@ from pydantic import BaseModel
 
 
 
+from datetime import datetime
+
 class TransactionOut(BaseModel):
-    id: int 
-    amount_pence: int 
+    id: int
+    amount_pence: int
     reason: str
     commitment_id: int
-    task_title: str 
+    task_title: str
+    created_at: datetime
 
     
     class Config:
