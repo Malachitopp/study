@@ -1,13 +1,11 @@
-import { router, useFocusEffect, useLocalSearchParams} from "expo-router";
-import { TextInput, StyleSheet, View, Text, ScrollView, Alert } from 'react-native'
-import { useState, useCallback } from 'react';
+import { router, useLocalSearchParams} from "expo-router";
+import { StyleSheet, View, Text, ScrollView, Alert } from 'react-native'
+import { useState } from 'react';
 import { API_URL } from '@/constants/api';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { AppButton } from "@/components/app-button";
 import { colors, radius, spacing } from '@/constants/design';
 import { useAuthToken } from '@/hooks/use-auth-token';
-import {useLoadTasks} from '@/hooks/use-load-tasks';
-import {useCreateTasks} from '@/hooks/use-create-tasks';
+import {useModuleTasks} from '@/hooks/use-module-tasks';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { Pressable } from "react-native";
 import {Module} from '@/constants/types'
@@ -22,7 +20,7 @@ export default function ModuleScreen() {
     const{id} = useLocalSearchParams();
     const {token, logout} = useAuthToken(); 
     const {commitments} =useCommitments();
-    const {task, loadtasks} = useLoadTasks(Number(id));
+    const {tasks, loadTasks} = useModuleTasks(Number(id));
 
 
     const handleDelete = async (id:number, module_id: number) => {
@@ -39,7 +37,7 @@ export default function ModuleScreen() {
           return;
         }
 
-      loadtasks() 
+      loadTasks()
     }
 
     const [module, setModule] = useState<Module>();
@@ -81,7 +79,7 @@ export default function ModuleScreen() {
 
         <View style={styles.section}>
             <Text style={styles.sectionLabel}>Tasks</Text>
-            {task.map((c) => (
+            {tasks.map((c) => (
           <ReanimatedSwipeable key = {c.id}
           renderRightActions={
             () => (

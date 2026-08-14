@@ -8,7 +8,6 @@ import { useAuthToken } from "@/hooks/use-auth-token";
 import {useCommitments} from '@/hooks/use-commitments';
 import { Pressable } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {useLoadTasks} from '@/hooks/use-load-tasks';
 import {ModuleCard} from '@/components/ModuleCard';
 import {useTasks} from '@/hooks/use-tasks';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';

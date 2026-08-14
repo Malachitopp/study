@@ -1,12 +1,10 @@
 import { StyleSheet, View, Text, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 
 import { spacing, colors, radius } from '@/constants/design';
 import {AppButton} from '@/components/app-button';
 import { CommitmentRow } from '@/components/CommitmentRow';
-import { useAuthToken } from '@/hooks/use-auth-token';
-import { Commitment } from '@/constants/types';
 import { Tile } from '@/components/tile';
 import FocusButton from '@/components/Focus';
 import { useRouter } from 'expo-router';
@@ -161,38 +159,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 32,                   // above the font size, or two lines crush together
     letterSpacing: -0.5,              // big type needs tightening, small type doesn't
-  },
-  footer: {
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-  },
-  timer: {
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: '300',
-    textAlign: 'center',
-  },
-  title: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '600',
-    lineHeight: 22,
-  },
-  module: {
-    color: colors.textMuted,
-    fontSize: 13.5,
-  },
-  countdown: {
-    color: colors.text,
-    fontSize: 40,
-    fontWeight: '700',
-    letterSpacing: -1.5,
-    fontVariant: ['tabular-nums'],
-  },
-  caption: {
-    color: colors.textMuted,
-    fontSize: 12,
-    marginTop: spacing.xs,
   },
   tileRow: {
     flexDirection: 'row',

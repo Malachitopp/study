@@ -1,13 +1,9 @@
 
 import { useLocalSearchParams} from "expo-router";
 import { TextInput, StyleSheet, View, Text} from 'react-native'
-import { useState } from 'react';
-import { API_URL } from '@/constants/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { AppButton } from "@/components/app-button";
 import { colors, radius, spacing } from '@/constants/design';
-import { useAuthToken } from '@/hooks/use-auth-token';
-import { useLoadTasks } from "@/hooks/use-load-tasks";
 import { useCreateTasks } from "@/hooks/use-create-tasks";
 import { useRouter } from "expo-router";
 
@@ -60,20 +56,6 @@ export default function newTask() {
 
 
 const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  content: {
-    padding: spacing.md,
-    gap: spacing.lg,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 26,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-  },
   sectionLabel: {
     color: colors.textMuted,
     fontSize: 12,
@@ -93,34 +75,4 @@ const styles = StyleSheet.create({
   section: {
     gap: spacing.sm,
   },
-  taskTitle: {
-    color: colors.text,
-    fontSize: 14.5,
-    fontWeight: '600',
-    flex: 1,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.borders,
-    borderRadius: radius.card,
-    padding: spacing.md,
-  },
-  deleteAction: {
-    width: 80,
-    backgroundColor: colors.danger,
-    borderRadius: radius.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-},
-deleteText: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-},
 });
