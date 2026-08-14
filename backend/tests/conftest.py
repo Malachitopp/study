@@ -38,11 +38,20 @@ def req(method, path, token =None, body=None, form = False):
     
 
 @pytest.fixture
-def token():
+def account():
+    """A fresh throwaway user: token AND the email it registered with,
+    so tests can assert exact identity, not just a plausible shape."""
     email = f"test_{int(time.time_ns())}@example.com"
-    req("POST", "/auth/register", body={"email": email, "password": "pw123456"})
+    s, body = req("POST", "/auth/register", body={"email": email, "password": "pw123456"})
+    assert s in (200, 201), f"register failed: {s} {body}"
     status, tok = req("POST", "/auth/login", body=f"username={email}&password=pw123456", form=True)
-    return tok["access_token"]
+    assert status == 200, f"login failed: {status} {tok}"
+    return {"token": tok["access_token"], "email": email}
+
+
+@pytest.fixture
+def token(account):
+    return account["token"]
 
 
 from datetime import datetime, timedelta, timezone

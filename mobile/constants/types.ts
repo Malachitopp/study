@@ -29,6 +29,11 @@ export type Module = {
 
 }
 
+export type Account = {
+    id: number
+    email: string
+}
+
 export type Transaction = {
     id: number
     amount_pence: number

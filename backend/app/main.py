@@ -11,6 +11,7 @@ from app.routers import tasks
 from app.routers import modules 
 from app.routers import checkins
 from app.routers import transactions
+from app.routers import users
 scheduler = BackgroundScheduler()
 
 
@@ -39,6 +40,8 @@ app.include_router(checkins.checkin_router)
 app.include_router(tasks.my_tasks)
 
 app.include_router(transactions.my_transactions)
+
+app.include_router(users.router)
 
 
 @app.get("/health")
